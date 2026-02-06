@@ -7,9 +7,12 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./product_services:/code # Sync local development directory with the container
-    # environment:
     #   - DATABASE_URL=postgresql://hasaanqureshi:my_password1122@product_db:5432/product_services_db
     #   - BOOTSTRAP_SERVER=broker:19092
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - PINECONE_API_KEY=${PINECONE_API_KEY}
+      - PINECONE_INDEX_NAME=${PINECONE_INDEX_NAME}
     depends_on:
       - broker
         # condition: service_healthy
@@ -155,8 +158,7 @@ services:
       - ./notification_services:/code
     depends_on:
       # - notification_db
-      - broker
-        # condition: service_healthy
+      - broker # condition: service_healthy
     ports:
       - "8004:8000"
     restart: on-failure
@@ -181,8 +183,7 @@ services:
     volumes:
       - ./payment_services:/code
     depends_on:
-      - broker
-        # condition: service_healthy
+      - broker # condition: service_healthy
       # payment_db:
       #   condition: service_healthy
       # broker:
@@ -277,8 +278,7 @@ services:
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: "broker:19092"
       DYNAMIC_CONFIG_ENABLED: "true"
     depends_on:
-      - broker
-        # condition: service_healthy
+      - broker # condition: service_healthy
     restart: on-failure
 
   #### Kong Service
@@ -329,6 +329,20 @@ services:
   #     - "8008:8008"  # Kong Admin API
   #   networks:
   #     - default
+
+  ai_services:
+    build:
+      context: ./ai_services
+      dockerfile: Dockerfile
+    volumes:
+      - ./ai_services:/code
+    ports:
+      - "8006:8000"
+    environment:
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - PINECONE_API_KEY=${PINECONE_API_KEY}
+      - PINECONE_INDEX_NAME=${PINECONE_INDEX_NAME}
+    restart: on-failure
 
 # volumes:
 #   product_db:

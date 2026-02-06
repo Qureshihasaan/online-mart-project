@@ -15,6 +15,12 @@ BOOTSTRAP_SERVER = config("BOOTSTRAP_SERVER", cast=str)
 KAFKA_PRODUCT_TOPIC = config("KAFKA_PRODUCT_TOPIC", cast=str)
 KAFKA_CONSUMER_GROUP_ID_FOR_PRODUCT = config("KAFKA_CONSUMER_GROUP_ID_FOR_PRODUCT", cast=str)
 
+# AI Services
+
+GEMINI_API_KEY = config("GEMINI_API_KEY", cast=Secret)
+PINECONE_API_KEY = config("PINECONE_API_KEY", cast=Secret)
+PINECONE_INDEX_NAME = config("PINECONE_INDEX_NAME", cast=str, default="online-mart-products")
+
 # TEST_DATABASE_URL = config("TEST_DATABASE_URL", cast=Secret)
 
 print(f"DATABASE_URL loaded: {str(PRODUCT_SERVICE_DATABASE_URL)[:50]}...")  # Print first 50 chars

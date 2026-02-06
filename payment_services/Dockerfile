@@ -9,15 +9,15 @@ RUN  apt-get update && apt-get install -y\
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip install poetry 
+RUN pip install --upgrade pip
+RUN pip install uv
 
-COPY . /code/
+COPY pyproject.toml ./
+COPY . .
 
-RUN poetry config virtualenvs.create false
-
-RUN poetry install
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install --system -e .
 
 EXPOSE 8000
 
-CMD [ "poetry" , "run" , "uvicorn" , "payment_services.main:app" , "--host" , "0.0.0.0" , "--reload" ]
+CMD [ "uvicorn" , "payment_services.main:app" , "--host" , "0.0.0.0" , "--reload" ]
 

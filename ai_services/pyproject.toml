@@ -1,0 +1,14 @@
+[project]
+name = "ai-services"
+version = "0.1.0"
+description = "AI Microservice using FastAPI, OpenAI (Gemini), and Pinecone"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.109.0",
+    "uvicorn[standard]>=0.27.0",
+    "openai>=1.0.0",
+    "pinecone-client>=3.0.0",
+    "starlette>=0.36.0",
+    "pydantic>=2.0.0"
+]

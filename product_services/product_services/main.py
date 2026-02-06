@@ -14,25 +14,7 @@ from . import setting
 
 from .database import Product , Session , create_db_and_tables , get_session
 from .consumer import consume_messages
-from .producer import kafka_producer    
-
-# async def wait_for_db(max_retries: int = 30, retry_interval: int = 2):
-#     """Wait for database to be ready before creating tables."""
-#     for attempt in range(max_retries):
-#         try:
-#             # Try to connect to the database
-#             with engine.connect() as conn:
-#                 conn.execute(text("SELECT 1"))
-#             print("Database connection successful!")
-#             return True
-#         except OperationalError as e:
-#             if attempt < max_retries - 1:
-#                 print(f"Database not ready yet (attempt {attempt + 1}/{max_retries}). Waiting {retry_interval}s...")
-#                 await asyncio.sleep(retry_interval)
-#             else:
-#                 print(f"Database connection failed after {max_retries} attempts: {e}")
-#                 raise
-#     return False
+from .producer import kafka_producer
 
 
      
@@ -95,6 +77,10 @@ async def product_service(product : Product , producer : Annotated[AIOKafkaProdu
         print("Product Send to Kafka topic")
     except Exception as e:
         print("Error Sending to Kafka", e)
+    
+    # Sync to Pinecone (AI Search)
+    upsert_to_pinecone(product)
+    
     return product
 
 
@@ -128,6 +114,10 @@ async def update_product(product_id : int , product : Product ,
         print("Updated_Product Send to Kafka topic")
     except Exception as e:
         print("Error Sending to Kafka", e)  
+    
+    # Sync to Pinecone
+    upsert_to_pinecone(db_product)
+
     return db_product
 
     #  db_product = session.get(Product , product_id)
@@ -190,4 +180,8 @@ async def delete_product(product_id : int , session : Annotated[Session, Depends
         print("Deleted_Product Send to Kafka topic")
     except Exception as e:
         print("Error sending to Kafka:", e)
+    
+    # Sync to Pinecone
+    delete_from_pinecone(product_id)
+
     return db_product
