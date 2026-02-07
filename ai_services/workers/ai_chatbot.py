@@ -1,61 +1,10 @@
-# ai_chatbot.py
-# Location: Online_Mart_Project/Online_mart_Project/ai_services/workers/ai_chatbot.py
-# Purpose: Chatbot entrypoint for Takhleeq Support Agent (uses agents package).
-# This file maps agent "tools" to the actual service endpoints present in the repo.
-# Tools that are not available in the repo return clear not-implemented responses.
-
 import asyncio
 import logging
 import os
 import sys
 from typing import Any, Dict, List, Optional
-
 import aiohttp
 from dotenv import load_dotenv
-
-# Load .env in local dev (harmless if not present)
-load_dotenv()
-
-# Try to load ai_services package settings and dynamic instructions; fall back to env
-try:
-    from ai_services import setting as ai_setting  # type: ignore
-    from ai_services.workers import dynamic_instruction  # type: ignore
-
-    GEMINI_API_KEY = (
-        str(ai_setting.GEMINI_API_KEY) if ai_setting.GEMINI_API_KEY else None
-    )
-    ORDER_SERVICE_URL = getattr(
-        ai_setting,
-        "ORDER_SERVICE_URL",
-        os.getenv("ORDER_SERVICE_URL", "http://order_services:8003"),
-    )
-    INVENTORY_SERVICE_URL = getattr(
-        ai_setting,
-        "INVENTORY_SERVICE_URL",
-        os.getenv("INVENTORY_SERVICE_URL", "http://inventory_services:8000"),
-    )
-    KB_SERVICE_URL = getattr(
-        ai_setting, "KB_SERVICE_URL", os.getenv("KB_SERVICE_URL", "")
-    )
-    VISUALIZER_URL = getattr(
-        ai_setting, "VISUALIZER_URL", os.getenv("VISUALIZER_URL", "")
-    )
-    SUPPORT_SERVICE_URL = getattr(
-        ai_setting, "SUPPORT_SERVICE_URL", os.getenv("SUPPORT_SERVICE_URL", "")
-    )
-    DYNAMIC_INSTRUCTIONS = dynamic_instruction.__doc__ or ""
-except Exception:
-    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-    ORDER_SERVICE_URL = os.getenv("ORDER_SERVICE_URL", "http://order_services:8003")
-    INVENTORY_SERVICE_URL = os.getenv(
-        "INVENTORY_SERVICE_URL", "http://inventory_services:8000"
-    )
-    KB_SERVICE_URL = os.getenv("KB_SERVICE_URL", "")
-    VISUALIZER_URL = os.getenv("VISUALIZER_URL", "")
-    SUPPORT_SERVICE_URL = os.getenv("SUPPORT_SERVICE_URL", "")
-    DYNAMIC_INSTRUCTIONS = os.getenv("DYNAMIC_INSTRUCTIONS", "")
-
-# Agents runtime imports
 from agents import (
     Agent,
     AsyncOpenAI,
@@ -64,13 +13,25 @@ from agents import (
     function_tool,
     set_tracing_disabled,
 )
+from . import dynamic_instruction
 
-# Keep runtime tracing minimal (mirror previous behavior)
-set_tracing_disabled(disabled=True)
+
+load_dotenv()
+
+# Configuration
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+# ORDER_SERVICE_URL = os.getenv("ORDER_SERVICE_URL", "http://order_services:8003")
+# INVENTORY_SERVICE_URL = os.getenv("INVENTORY_SERVICE_URL", "http://inventory_services:8000")
+# KB_SERVICE_URL = os.getenv("KB_SERVICE_URL", "")
+# VISUALIZER_URL = os.getenv("VISUALIZER_URL", "")
+# SUPPORT_SERVICE_URL = os.getenv("SUPPORT_SERVICE_URL", "")
+# DYNAMIC_INSTRUCTIONS = os.getenv("DYNAMIC_INSTRUCTIONS", "")
 
 BASE_URL = os.getenv(
     "GEMINI_BASE_URL", "https://generativelanguage.googleapis.com/v1beta/openai/"
 )
+
+set_tracing_disabled(disabled=True)
 
 # Logging setup
 logging.basicConfig(level=os.getenv("AI_CHATBOT_LOG_LEVEL", "INFO"))
@@ -80,70 +41,6 @@ logger = logging.getLogger("ai_chatbot")
 DEFAULT_TIMEOUT = aiohttp.ClientTimeout(total=10)
 RETRY_ATTEMPTS = 2
 RETRY_BACKOFF = 1.0  # seconds
-
-
-async def _http_get_json(
-    url: str,
-    params: Optional[Dict[str, Any]] = None,
-    timeout: aiohttp.ClientTimeout = DEFAULT_TIMEOUT,
-) -> Dict[str, Any]:
-    """Perform GET with minimal retry and return parsed JSON or an error dict."""
-    last_exc: Optional[BaseException] = None
-    for attempt in range(1, RETRY_ATTEMPTS + 1):
-        try:
-            async with aiohttp.ClientSession(timeout=timeout) as session:
-                async with session.get(url, params=params) as resp:
-                    text = await resp.text()
-                    if 200 <= resp.status < 300:
-                        try:
-                            return await resp.json()
-                        except Exception:
-                            return {"success": True, "raw": text}
-                    else:
-                        logger.warning("GET %s returned %s: %s", url, resp.status, text)
-                        return {"success": False, "status": resp.status, "body": text}
-        except Exception as e:
-            last_exc = e
-            logger.debug("GET %s attempt %d failed: %s", url, attempt, e)
-            if attempt < RETRY_ATTEMPTS:
-                await asyncio.sleep(RETRY_BACKOFF * attempt)
-    logger.error("GET %s failed after %d attempts: %s", url, RETRY_ATTEMPTS, last_exc)
-    return {"success": False, "error": str(last_exc)}
-
-
-async def _http_post_json(
-    url: str, payload: Dict[str, Any], timeout: aiohttp.ClientTimeout = DEFAULT_TIMEOUT
-) -> Dict[str, Any]:
-    """Perform POST with minimal retry and return parsed JSON or an error dict."""
-    last_exc: Optional[BaseException] = None
-    for attempt in range(1, RETRY_ATTEMPTS + 1):
-        try:
-            async with aiohttp.ClientSession(timeout=timeout) as session:
-                async with session.post(url, json=payload) as resp:
-                    text = await resp.text()
-                    if 200 <= resp.status < 300:
-                        try:
-                            return await resp.json()
-                        except Exception:
-                            return {"success": True, "raw": text}
-                    else:
-                        logger.warning(
-                            "POST %s returned %s: %s", url, resp.status, text
-                        )
-                        return {"success": False, "status": resp.status, "body": text}
-        except Exception as e:
-            last_exc = e
-            logger.debug("POST %s attempt %d failed: %s", url, attempt, e)
-            if attempt < RETRY_ATTEMPTS:
-                await asyncio.sleep(RETRY_BACKOFF * attempt)
-    logger.error("POST %s failed after %d attempts: %s", url, RETRY_ATTEMPTS, last_exc)
-    return {"success": False, "error": str(last_exc)}
-
-
-# ---------------------------
-# Tool wrappers for the agent
-# ---------------------------
-
 
 @function_tool
 async def get_order_status(order_id: str) -> Dict[str, Any]:
@@ -179,7 +76,7 @@ async def search_knowledge_base(query: str, scope: str = "policies") -> Dict[str
 
 
 @function_tool
-async def visualize_design(payload: Dict[str, Any]) -> Dict[str, Any]:
+async def visualize_design(description: str, design_file_url: Optional[str] = None) -> Dict[str, Any]:
     """
     Visualizer is not implemented in this repo.
     Return an informative response instructing the agent to ask user for upload/confirmation.
@@ -193,7 +90,7 @@ async def visualize_design(payload: Dict[str, Any]) -> Dict[str, Any]:
 
 
 @function_tool
-async def create_support_ticket(payload: Dict[str, Any]) -> Dict[str, Any]:
+async def create_support_ticket(issue_description: str, priority: str = "normal") -> Dict[str, Any]:
     """
     Ticket creation endpoint not present in the notification service in this repo.
     Return an actionable suggestion the agent can present to the user.
@@ -226,9 +123,8 @@ async def run_agent_for_prompt(prompt: str) -> Any:
         model=os.getenv("GEMINI_MODEL", "gemini-2.5-flash"),
         openai_client=external_client,
     )
-
-    instructions = DYNAMIC_INSTRUCTIONS or os.getenv("DYNAMIC_INSTRUCTIONS", "")
-    agent = Agent(name="Takhleeq Support Agent", model=model, instructions=instructions)
+ 
+    agent = Agent(name="Takhleeq Support Agent", model=model, instructions="dynamic_instruction")
 
     logger.info("Running agent for prompt (len=%d)", len(prompt or ""))
     result = await Runner.run(agent, input=prompt)

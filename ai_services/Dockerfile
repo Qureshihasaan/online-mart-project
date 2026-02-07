@@ -11,6 +11,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY . /code
 
 # Install dependencies
-RUN pip install --no-cache-dir fastapi uvicorn openai pinecone-client
+RUN pip install --no-cache-dir fastapi uvicorn openai pinecone-client python-dotenv aiohttp openai-agents
 
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
