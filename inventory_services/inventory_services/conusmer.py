@@ -69,57 +69,8 @@ async def consume_product_events():
             except Exception as e:
                 logging.error(f"Error processing message: {e}")
                 continue
-
     finally:
         await consumer.stop()
-
-
-async def consume_order_events():
-    consumer = AIOKafkaConsumer(
-        setting.KAFKA_ORDER_TOPIC,
-        bootstrap_servers=setting.BOOTSTRAP_SERVER,
-        group_id=setting.KAFKA_CONSUMER_GROUP_ID_FOR_INVENTORY,
-        auto_offset_reset="earliest",
-    )
-
-    await consumer.start()
-    print("Order Consumer started...")
-
-    try:
-        async for msg in consumer:
-            try:
-                event = json.loads(msg.value.decode("utf-8"))
-                print("Event received:", event)
-                if event["event_type"] == "Order_Created":
-                    order = event["order"]
-                    decrease_inventory(
-                        order["product_id"],
-                        order["product_quantity"]
-                    )
-                    print("Inventory Updated (Decreased) for product...")
-            except Exception as e:
-                logging.error(f"Error processing order message: {e}")
-                continue
-    finally:
-        await consumer.stop()
-
-def decrease_inventory(product_id, quantity):
-    try:
-        with Session(engine) as session:
-            inventory_item = (
-                session.query(Stock_update)
-                .filter(Stock_update.product_id == product_id)
-                .first()
-            )
-            if inventory_item:
-                inventory_item.product_quantity -= quantity
-                session.commit()
-                print(f"Inventory decreased for product {product_id} by {quantity}")
-            else:
-                print(f"Product {product_id} not found in inventory, cannot decrease.")
-    except Exception as e:
-        logging.error(f"Error decreasing inventory: {e}")
-
 
 
 def add_inventory(product_id, product_name, product_quantity):
