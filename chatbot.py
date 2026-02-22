@@ -1,16 +1,18 @@
 import asyncio
 import os
-from dotenv import load_dotenv
-from pinecone import Pinecone
+
 from agents import (
     Agent,
     AsyncOpenAI,
+    ItemHelpers,
     OpenAIChatCompletionsModel,
-    run_demo_loop,
-    set_tracing_disabled,
+    Runner,
     function_tool,
-    Runner
+    set_tracing_disabled,
 )
+from dotenv import load_dotenv
+from openai.types.responses import ResponseTextDeltaEvent
+from pinecone import Pinecone
 
 load_dotenv()
 
@@ -44,6 +46,7 @@ pc = Pinecone(api_key=pinecone_api_key)
 #     )
 
 dense_index = pc.Index(INDEX_NAME)
+
 
 @function_tool
 def search_knowledge_base(query: str) -> str:
@@ -83,7 +86,7 @@ def search_knowledge_base(query: str) -> str:
 external_client = AsyncOpenAI(
     api_key=openrouter_api_key,
     # base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
-    base_url="https://openrouter.ai/api/v1"
+    base_url="https://openrouter.ai/api/v1",
 )
 
 model = OpenAIChatCompletionsModel(
@@ -116,19 +119,37 @@ If the user asks:
 ...then you may answer directly without using the tool.
 
 Always be friendly, clear, and concise. If you can’t find relevant information in the knowledge base, say so honestly.
+When using the `search_knowledge_base` tool, always synthesize the retrieved information into a comprehensive, clear, and direct answer for the user.
 """
 
 
+# async def main():
 agent = Agent(
     name="Takhleeq AI Assistant",
     instructions=RAG_INSTRUCTIONS,
     model=model,
     tools=[search_knowledge_base],
 )
-result = Runner.run_sync(agent, input=input("Enter your question: "))
+result = Runner.run_streamed(agent, input=input("How can I help you?"))
+print(result)
+# print("\n--- Assistant Thinking ---\n")
+
+# async for event in result.stream_events():
+#     if event.type == "raw_response_event":
+#         if isinstance(event.data, ResponseTextDeltaEvent):
+#             print(event.data.delta, end="", flush=True)
+
+#     elif event.type == "run_item_stream_event":
+#         if event.name == "tool_called":
+#             print(f"\n[Tool Call]: {event.item.tool_name}")
+#         elif event.name == "tool_output":
+#             print("[Knowledge Base Found Relevant Info]")
+#         elif event.name == "message_output_created":
+#             print("\n\n--- Final Response Consistently Rendered ---")
+
+# print(f"\nCaptured Final Output: {result.final_output}")
+# await agent.close()
 
 
-
-if __name__ == "__main__":
-    print("Takhleeq AI Assistant — type 'quit' or 'exit' to end.\n")
-    asyncio.run(run_demo_loop(result.final_output))
+# if __name__ == "__main__":
+#     asyncio.run(main())
