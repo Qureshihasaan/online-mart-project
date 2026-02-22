@@ -1,12 +1,13 @@
 import asyncio
 import os
+from uuid import uuid4
 
 from agents import (
     Agent,
     AsyncOpenAI,
-    ItemHelpers,
     OpenAIChatCompletionsModel,
     Runner,
+    SQLiteSession,
     function_tool,
     set_tracing_disabled,
 )
@@ -123,33 +124,78 @@ When using the `search_knowledge_base` tool, always synthesize the retrieved inf
 """
 
 
-# async def main():
 agent = Agent(
     name="Takhleeq AI Assistant",
     instructions=RAG_INSTRUCTIONS,
     model=model,
     tools=[search_knowledge_base],
 )
-result = Runner.run_streamed(agent, input=input("How can I help you?"))
-print(result)
-# print("\n--- Assistant Thinking ---\n")
 
-# async for event in result.stream_events():
-#     if event.type == "raw_response_event":
-#         if isinstance(event.data, ResponseTextDeltaEvent):
-#             print(event.data.delta, end="", flush=True)
-
-#     elif event.type == "run_item_stream_event":
-#         if event.name == "tool_called":
-#             print(f"\n[Tool Call]: {event.item.tool_name}")
-#         elif event.name == "tool_output":
-#             print("[Knowledge Base Found Relevant Info]")
-#         elif event.name == "message_output_created":
-#             print("\n\n--- Final Response Consistently Rendered ---")
-
-# print(f"\nCaptured Final Output: {result.final_output}")
-# await agent.close()
+# SQLite file for persistent session storage (OpenAI Agents SDK)
+SESSIONS_DB = os.path.join(os.path.dirname(__file__), "sessions", "conversations.db")
+os.makedirs(os.path.dirname(SESSIONS_DB), exist_ok=True)
 
 
-# if __name__ == "__main__":
-#     asyncio.run(main())
+async def stream_agent_response(session, user_input):
+    """Async generator that runs the agent with streaming. Yields (event_type, data) tuples.
+    - ("text", str): token to display
+    - ("tool_call", tool_name): agent is calling a tool (e.g. "search_knowledge_base")
+    """
+    result = Runner.run_streamed(agent, input=user_input, session=session)
+    async for event in result.stream_events():
+        if event.type == "raw_response_event":
+            if isinstance(event.data, ResponseTextDeltaEvent):
+                delta = event.data.delta or ""
+                if delta:
+                    yield ("text", delta)
+        elif event.type == "run_item_stream_event":
+            if getattr(event, "item", None) and getattr(event.item, "type", None) == "tool_call_item":
+                tool_name = getattr(event.item, "name", None) or "tool"
+                yield ("tool_call", tool_name)
+
+
+async def main():
+    """Run a continuous conversation loop with streaming and SDK session memory."""
+    session_id = str(uuid4())
+    session = SQLiteSession(session_id, SESSIONS_DB)
+
+    print("👋 Welcome! I'm the Takhleeq AI Assistant.")
+    print(f"   Session: {session_id[:8]}... (conversation stored via OpenAI Agents SDK)")
+    print("   Commands: /new (fresh chat), /session (show id), exit/quit/bye (end)\n")
+
+    while True:
+        try:
+            user_input = input("\nYou: ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print("\nGoodbye!")
+            break
+
+        if not user_input:
+            continue
+        if user_input.lower() in ("exit", "quit", "bye"):
+            print("Goodbye! Have a great day.")
+            break
+
+        if user_input.lower() == "/new":
+            await session.clear_session()
+            session_id = str(uuid4())
+            session = SQLiteSession(session_id, SESSIONS_DB)
+            print("🔄 New session started. Previous context cleared.")
+            continue
+        if user_input.lower() == "/session":
+            print(f"   Session ID: {session.session_id[:8]}...")
+            continue
+
+        print("\nAssistant: ", end="", flush=True)
+
+        async for event_type, data in stream_agent_response(session, user_input):
+            if event_type == "text":
+                print(data, end="", flush=True)
+            elif event_type == "tool_call":
+                print(f"\n[Searching knowledge base...] ", end="", flush=True)
+
+        print()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
