@@ -8,9 +8,9 @@ except FileNotFoundError:
     config = Config("")
 
 
-DATA_BASE_URL = config("DATA_BASE_URL" , cast=Secret)
+# DATA_BASE_URL = config("DATA_BASE_URL" , cast=Secret)
 
-TEST_DATABASE_URL = config("TEST_DATABASE_URL", cast=Secret)
+# TEST_DATABASE_URL = config("TEST_DATABASE_URL", cast=Secret)
 
 KAFKA_USER_TOPIC = config("KAFKA_USER_TOPIC", cast=str)
 

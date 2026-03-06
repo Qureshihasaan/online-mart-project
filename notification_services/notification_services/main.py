@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from typing import  AsyncGenerator
 from fastapi import  FastAPI
 from sqlmodel import  Session
-from .database import engine , create_db_and_tables
+# from .database import engine , create_db_and_tables
 # from .email_services import send_email
 import asyncio , logging
 from . import setting

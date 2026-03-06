@@ -1,0 +1,16 @@
+README.md
+pyproject.toml
+user_services/__init__.py
+user_services/consumer.py
+user_services/database.py
+user_services/main.py
+user_services/model.py
+user_services/producer.py
+user_services/schema.py
+user_services/setting.py
+user_services/utils.py
+user_services.egg-info/PKG-INFO
+user_services.egg-info/SOURCES.txt
+user_services.egg-info/dependency_links.txt
+user_services.egg-info/requires.txt
+user_services.egg-info/top_level.txt

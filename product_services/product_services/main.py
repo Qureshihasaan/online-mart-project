@@ -23,7 +23,7 @@ async def lifespan(app : FastAPI) -> AsyncGenerator[None , None]:
     print("Waiting for database to be ready...")
     # await wait_for_db()
     print("Tables Creating")
-    task = asyncio.create_task(consume_messages(setting.KAFKA_PRODUCT_TOPIC , setting.BOOTSTRAP_SERVER))
+    task = asyncio.create_task(consume_messages(setting.KAFKA_PRODUCT_TOPIC , setting.KAFKA_BOOTSTRAP_SERVER))
     create_db_and_tables()
     yield 
 

@@ -3,7 +3,7 @@ from . import setting
 import json
 
 async def kafka_producer():
-    producer = AIOKafkaProducer(bootstrap_servers=setting.BOOTSTRAP_SERVER,
+    producer = AIOKafkaProducer(bootstrap_servers=setting.KAFKA_BOOTSTRAP_SERVER,
                         # value_serializer=lambda v: json.dumps(v).encode('utf-8'),                            
                                 )
     await producer.start()

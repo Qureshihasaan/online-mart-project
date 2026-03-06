@@ -1,6 +1,6 @@
 from sqlmodel import SQLModel , Field , create_engine , Session
 from typing import Optional
-from .setting import PRODUCT_SERVICE_DATABASE_URL 
+from . import setting
 # import json
 
 class Product(SQLModel , table = True):
@@ -20,7 +20,7 @@ class Product(SQLModel , table = True):
 #     connection_string 
 # )
 
-connection_strings = str(PRODUCT_SERVICE_DATABASE_URL).replace(
+connection_strings = str(setting.PRODUCT_SERVICE_DATABASE_URL).replace(
     "postgresql" , "postgresql+psycopg2"
 )
 

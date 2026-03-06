@@ -1,0 +1,86 @@
+Metadata-Version: 2.4
+Name: user-services
+Version: 0.1.0
+Summary: User microservice
+Requires-Python: >=3.12
+Description-Content-Type: text/markdown
+Requires-Dist: fastapi>=0.115.0
+Requires-Dist: uvicorn>=0.34.0
+Requires-Dist: sqlmodel>=0.0.22
+Requires-Dist: psycopg2-binary>=2.9.9
+Requires-Dist: aiokafka>=0.12.0
+Requires-Dist: starlette>=0.41.0
+Requires-Dist: passlib[bcrypt]>=1.7.4
+Requires-Dist: pydantic[email]>=2.12.5
+Requires-Dist: python-jose[cryptography]>=3.5.0
+Requires-Dist: python-multipart>=0.0.22
+
+# User Service
+
+This service manages user accounts and authentication for the Online Mart platform. It handles user registration, profile management, and authentication processes.
+
+## Features
+
+- **User Management**: Create, read, update, and delete user accounts
+- **Authentication**: Secure user authentication and session management
+- **Profile Management**: Manage user profile information and preferences
+- **Event Streaming**: Publishes user events to Kafka for real-time updates
+- **RESTful API**: FastAPI-based endpoints for user operations
+
+## API Endpoints
+
+- `POST /users` - Register a new user
+- `GET /users/` - Retrieve all users
+- `GET /users/{user_id}` - Get details for a specific user
+- `PUT /users/{user_id}` - Update user profile
+- `DELETE /users/{user_id}` - Delete a user account
+- `POST /auth/login` - Authenticate user and generate token
+- `POST /auth/logout` - Invalidate user session
+
+## Data Model
+
+Each user includes:
+- `user_id`: Unique identifier (auto-generated)
+- `username`: Unique username for login
+- `email`: User's email address
+- `password_hash`: Hashed password for security
+- `first_name`: User's first name
+- `last_name`: User's last name
+- `phone_number`: Contact phone number
+- `address`: User's address information
+- `created_at`: Account creation timestamp
+- `updated_at`: Last profile update timestamp
+- `is_active`: Account status indicator
+
+## Dependencies
+
+- FastAPI: Web framework
+- SQLModel: Database ORM
+- AIOKafka: Kafka integration for event streaming
+- Passlib: Password hashing
+- JWT: Token-based authentication
+- PostgreSQL: Persistent storage
+
+## Environment Variables
+
+- `USER_SERVICE_DATABASE_URL`: PostgreSQL connection string
+- `BOOTSTRAP_SERVER`: Kafka broker address
+- `KAFKA_USER_TOPIC`: Topic name for user events
+- `KAFKA_CONSUMER_GROUP_ID_FOR_USER`: Consumer group ID
+- `JWT_SECRET_KEY`: Secret key for JWT token generation
+- `JWT_ALGORITHM`: Algorithm for JWT token encoding
+- `ACCESS_TOKEN_EXPIRE_MINUTES`: Token expiration time
+
+## Usage
+
+1. Start the service: `uvicorn user_services.main:app --reload`
+2. The service will be available at `http://localhost:8002`
+3. API documentation available at `/docs`
+
+## Event Flow
+
+- User registration triggers a "User_Registered" event to Kafka
+- Profile updates trigger a "User_Profile_Updated" event to Kafka
+- User deletions trigger a "User_Deleted" event to Kafka
+- Authentication events trigger "User_Authenticated" events to Kafka
+- Events are consumed by other services for coordinated user management

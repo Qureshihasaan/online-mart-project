@@ -1,9 +1,9 @@
 from sqlmodel import SQLModel , create_engine , Session  
-from .setting import USER_SERVICE_DATABASE_URL
+from . import setting
 
 
 
-connection_strings = str(USER_SERVICE_DATABASE_URL).replace(
+connection_strings = str(setting.USER_SERVICE_DATABASE_URL).replace(
     "postgresql" , "postgresql+psycopg2"
 )
 

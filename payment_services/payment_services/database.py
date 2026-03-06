@@ -1,7 +1,7 @@
 from sqlmodel import SQLModel , Field, Session , create_engine
-from .setting import PAYMENT_DATABASE_URL
+from . import setting
 
-connection_strings = str(PAYMENT_DATABASE_URL).replace(
+connection_strings = str(setting.PAYMENT_DATABASE_URL).replace(
     "postgresql" , "postgresql+psycopg2"
 )
 

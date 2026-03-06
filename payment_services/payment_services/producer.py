@@ -1,8 +1,8 @@
 from aiokafka import AIOKafkaProducer
-
+from . import setting
 
 async def kafka_producer():
-    producer = AIOKafkaProducer(bootstrap_servers=str("broker:19092"))
+    producer = AIOKafkaProducer(bootstrap_servers=str(setting.KAFKA_BOOTSTRAP_SERVER))
     await producer.start()
     try: 
         yield producer

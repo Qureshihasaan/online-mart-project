@@ -17,7 +17,7 @@ from . import setting
 @asynccontextmanager
 async def lifespan(app : FastAPI)->AsyncGenerator[None,None]:
     print("Tables Creating...")
-    task = asyncio.create_task(consume_messages(setting.KAFKA_PAYMENT_TOPIC, setting.BOOTSTRAP_SERVER))
+    task = asyncio.create_task(consume_messages(setting.KAFKA_PAYMENT_TOPIC, setting.KAFKA_BOOTSTRAP_SERVER))
     create_db_and_tables()
     yield
 

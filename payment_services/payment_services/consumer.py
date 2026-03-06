@@ -2,7 +2,7 @@ import asyncio
 import logging
 from aiokafka import AIOKafkaConsumer
 from aiokafka.errors import KafkaConnectionError
-
+from . import setting
 
 loop = asyncio.get_event_loop()
 logging.basicConfig(level=logging.INFO)
@@ -11,9 +11,9 @@ logging.basicConfig(level=logging.INFO)
 async def consume_messages(topic , bootstarpserver)->AIOKafkaConsumer:
     consumer = AIOKafkaConsumer(
         # 'payment_request',
-        topic,
-        bootstrap_servers=bootstarpserver,
-        group_id="payment",
+        setting.KAFKA_PAYMENT_TOPIC,
+        bootstrap_servers=setting.KAFKA_BOOTSTRAP_SERVER,
+        group_id=setting.KAFKA_CONSUMER_GROUP_ID_FOR_PAYMENT,
         auto_offset_reset="earliest"
     )
 

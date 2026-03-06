@@ -1,0 +1,86 @@
+Metadata-Version: 2.4
+Name: order-services
+Version: 0.1.0
+Summary: Order microservice
+Requires-Python: >=3.12
+Description-Content-Type: text/markdown
+Requires-Dist: fastapi>=0.115.0
+Requires-Dist: uvicorn>=0.34.0
+Requires-Dist: sqlmodel>=0.0.22
+Requires-Dist: psycopg2-binary>=2.9.9
+Requires-Dist: aiokafka>=0.12.0
+Requires-Dist: starlette>=0.41.0
+Requires-Dist: pydantic[email]>=2.12.5
+Requires-Dist: httpx>=0.28.1
+Requires-Dist: passlib[bcrypt]>=1.7.4
+Requires-Dist: jose>=1.0.0
+Requires-Dist: python-jose[cryptography]>=3.5.0
+
+# Order Service
+
+This service manages the order processing pipeline for the Online Mart platform. It handles order creation, status updates, and coordinates with inventory and payment services.
+
+## Features
+
+- **Order Management**: Create, read, update, and track orders
+- **Order Lifecycle**: Manage complete order lifecycle from placement to fulfillment
+- **Inventory Coordination**: Communicates with inventory service for stock reservation
+- **Event Streaming**: Publishes order events to Kafka for real-time updates
+- **RESTful API**: FastAPI-based endpoints for order operations
+
+## API Endpoints
+
+- `POST /orders` - Create a new order
+- `GET /orders/` - Retrieve all orders
+- `GET /orders/{order_id}` - Get details for a specific order
+- `PUT /orders/{order_id}/status` - Update order status
+- `PUT /orders/{order_id}/cancel` - Cancel an order
+- `GET /orders/user/{user_id}` - Get orders for a specific user
+- `GET /orders/status/{status}` - Get orders by status
+
+## Data Model
+
+Each order includes:
+- `order_id`: Unique identifier (auto-generated)
+- `user_id`: Reference to the customer who placed the order
+- `order_items`: List of items in the order with quantities and prices
+- `total_amount`: Total order value
+- `status`: Current order status (pending, confirmed, shipped, delivered, cancelled)
+- `shipping_address`: Delivery address
+- `billing_address`: Billing address
+- `payment_method`: Selected payment method
+- `created_at`: Order creation timestamp
+- `updated_at`: Last status update timestamp
+- `estimated_delivery`: Estimated delivery date
+
+## Dependencies
+
+- FastAPI: Web framework
+- SQLModel: Database ORM
+- AIOKafka: Kafka integration for event streaming
+- Pydantic: Data validation
+- PostgreSQL: Persistent storage
+
+## Environment Variables
+
+- `ORDER_SERVICE_DATABASE_URL`: PostgreSQL connection string
+- `BOOTSTRAP_SERVER`: Kafka broker address
+- `KAFKA_ORDER_TOPIC`: Topic name for order events
+- `KAFKA_CONSUMER_GROUP_ID_FOR_ORDER`: Consumer group ID
+- `INVENTORY_SERVICE_URL`: URL of the inventory service for stock checks
+- `PAYMENT_SERVICE_URL`: URL of the payment service for payment processing
+
+## Usage
+
+1. Start the service: `uvicorn order_services.main:app --reload`
+2. The service will be available at `http://localhost:8003`
+3. API documentation available at `/docs`
+
+## Event Flow
+
+- Order creation triggers an "Order_Created" event to Kafka
+- Payment confirmation triggers an "Order_Paid" event to Kafka
+- Order shipment triggers an "Order_Shipped" event to Kafka
+- Order delivery triggers an "Order_Delivered" event to Kafka
+- Order cancellation triggers an "Order_Cancelled" event to Kafka
+- Events are consumed by other services for coordinated order management

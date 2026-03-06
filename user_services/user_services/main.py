@@ -4,7 +4,6 @@ from datetime import timedelta
 from fastapi import Depends, FastAPI , HTTPException ,status
 from typing import AsyncGenerator, Annotated , Optional
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from .utils import ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token, decode_access_token
 from .schema import bcrypt_context , authenticate_user
 from .consumer import consume
 from .producer import kafka_producer
@@ -13,10 +12,10 @@ import asyncio
 from .model import User, CreateUser , Token 
 from sqlmodel import Session , select
 import json
-from jose import JWTError
 from psycopg2 import IntegrityError
 from . import setting
 from .producer import kafka_producer
+from .setting import ACCESS_TOKEN_EXPIRE_MINUTES
 
 
 @asynccontextmanager
@@ -117,7 +116,7 @@ async def login_with_token(form_data : Annotated[OAuth2PasswordRequestForm,Depen
     user = authenticate_user(form_data.username, form_data.password, db)
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could Not Validate User")
-    access_token = create_access_token(user.username , user.id , timedelta(minutes= ACCESS_TOKEN_EXPIRE_MINUTES))
+    access_token = create_access_token(user.username , user.id , timedelta(minutes= setting.ACCESS_TOKEN_EXPIRE_MINUTES))
     return {"access_token" : access_token, "token_type" : "bearer"}
 
 # @app.post("/token" , response_model=Token)
@@ -132,7 +131,7 @@ async def login_with_token(form_data : Annotated[OAuth2PasswordRequestForm,Depen
 
 @app.get("/get_access_token")
 def get_access_token(username :str , user_id : Optional[int] = None):
-    access_token_expire = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token_expire = timedelta(minutes=setting.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
        username, user_id , expires_delta=access_token_expire
     )

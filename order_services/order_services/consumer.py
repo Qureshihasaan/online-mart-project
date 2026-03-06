@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.INFO)
 async def consume_messages() -> AIOKafkaConsumer:
     consumer = AIOKafkaConsumer(
         setting.KAFKA_ORDER_TOPIC,
-        bootstrap_servers=setting.BOOT_STRAP_SERVER,
+        bootstrap_servers=setting.KAFKA_BOOTSTRAP_SERVER,
         group_id=setting.KAFKA_CONSUMER_GROUP_ID_FOR_ORDER,
         auto_offset_reset="earliest",
     )

@@ -1,11 +1,12 @@
 from sqlmodel import SQLModel , Field , create_engine
 from typing import  Optional
-from .setting import INVENTORY_DATABASE_URL
+# from .setting import INVENTORY_DATABASE_URL
+from . import setting
     
     
 ### Database connectivity 
 
-connection_string = str(INVENTORY_DATABASE_URL).replace(
+connection_string = str(setting.INVENTORY_DATABASE_URL).replace(
     "postgresql" , "postgresql+psycopg2"
 )
 

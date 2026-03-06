@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.INFO)
 async def consume()->AIOKafkaConsumer:
     consumer = AIOKafkaConsumer(
         setting.KAFKA_USER_TOPIC,
-        bootstrap_servers=setting.BOOTSTRAP_SERVER,
+        bootstrap_servers=setting.KAFKA_BOOTSTRAP_SERVER,
         group_id=setting.KAFKA_CONSUMER_GROUP_ID_FOR_USER,
         auto_offset_reset="earliest"
         )

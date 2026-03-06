@@ -1,5 +1,5 @@
 from sqlmodel import SQLModel, Field , create_engine , Session
-from .setting import ORDER_DATABASE_URL
+from . import setting
 from typing import Optional
 from pydantic import EmailStr 
 
@@ -45,7 +45,7 @@ class create_user(SQLModel):
 #     password : str
 
 
-connection_string = str(ORDER_DATABASE_URL).replace(
+connection_string = str(setting.ORDER_DATABASE_URL).replace(
     "postgresql" , "postgresql+psycopg2"
 )
 

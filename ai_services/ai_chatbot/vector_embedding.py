@@ -14,6 +14,7 @@ from pinecone import Pinecone
 load_dotenv()
 
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
+PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME")
 
 if not PINECONE_API_KEY:
     raise ValueError("Pinecone API key not found")
@@ -22,11 +23,9 @@ pc = Pinecone(
     api_key=PINECONE_API_KEY,
 )
 
-index_name = "ai-vector-embeddings"
-
-if not pc.has_index(index_name):
+if not pc.has_index(PINECONE_INDEX_NAME):
     pc.create_index_for_model(
-        name=index_name,
+        name=PINECONE_INDEX_NAME,
         cloud="aws",
         region="us-east-1",
         embed={"model": "llama-text-embed-v2", "field_map": {"text": "chunk_text"}},
