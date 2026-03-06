@@ -330,18 +330,32 @@ services:
   #   networks:
   #     - default
 
-  ai_services:
+  ai_chatbot:
     build:
-      context: ./ai_services
+      context: ./ai_services/ai_chatbot
       dockerfile: Dockerfile
     volumes:
-      - ./ai_services:/code
+      - ./ai_services/ai_chatbot:/code
     ports:
       - "8006:8000"
     environment:
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
       - PINECONE_API_KEY=${PINECONE_API_KEY}
-      - PINECONE_INDEX_NAME=${PINECONE_INDEX_NAME}
+    restart: on-failure
+
+  ai_design_visualization:
+    build:
+      context: ./ai_services/ai_design_generation_visualization
+      dockerfile: Dockerfile
+    volumes:
+      - ./ai_services/ai_design_generation_visualization:/code
+    ports:
+      - "8007:8000"
+    environment:
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - OPENROUTER_BASE_URL=${OPENROUTER_BASE_URL}
+      - OPENROUTER_MODEL=${OPENROUTER_MODEL}
+      - FLUX_IMAGE_MODEL=${FLUX_IMAGE_MODEL}
     restart: on-failure
 
 # volumes:

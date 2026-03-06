@@ -6,6 +6,41 @@ resolution-markers = [
     "python_full_version < '3.13'",
 ]
 
+[manifest]
+members = [
+    "ai-chatbot",
+    "ai-design-generation-visualization",
+    "ai-service-vector-embeddings",
+]
+
+[[package]]
+name = "ai-chatbot"
+version = "0.1.0"
+source = { virtual = "ai_services/ai_chatbot" }
+dependencies = [
+    { name = "chainlit" },
+    { name = "openai-agents" },
+    { name = "pinecone" },
+    { name = "python-docs" },
+    { name = "python-docx" },
+    { name = "python-dotenv" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "chainlit", specifier = ">=2.9.6" },
+    { name = "openai-agents", specifier = ">=0.9.0" },
+    { name = "pinecone", specifier = ">=8.0.1" },
+    { name = "python-docs", specifier = ">=0.1.0" },
+    { name = "python-docx", specifier = ">=1.2.0" },
+    { name = "python-dotenv", specifier = ">=1.2.1" },
+]
+
+[[package]]
+name = "ai-design-generation-visualization"
+version = "0.1.0"
+source = { virtual = "ai_services/ai_design_generation_visualization" }
+
 [[package]]
 name = "ai-service-vector-embeddings"
 version = "0.1.0"

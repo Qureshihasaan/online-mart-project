@@ -99,37 +99,21 @@ model = OpenAIChatCompletionsModel(
 set_tracing_disabled(disabled=True)
 
 
-RAG_INSTRUCTIONS = """
-You are the Takhleeq AI Assistant, a helpful and friendly assistant for Takhleeq.
-Use the `search_knowledge_base` tool to look up information from the knowledge base when needed.
 
-If the user asks about:
-- What Takhleeq is
-- What Takhleeq does
-- Takhleeq’s services, products, or offerings
-- Policies, guidelines, or procedures
-- Any factual information documented in the knowledge base
-
-...then you MUST use the `search_knowledge_base` tool first to find relevant passages and base your answer on those.
-
-If the user asks:
-- A question that is not about Takhleeq or its knowledge base
-- Something outside the scope of the knowledge base
-- A casual, conversational, or unrelated question
-
-...then you may answer directly without using the tool.
-
-Always be friendly, clear, and concise. If you can’t find relevant information in the knowledge base, say so honestly.
-When using the `search_knowledge_base` tool, always synthesize the retrieved information into a comprehensive, clear, and direct answer for the user.
-"""
+# Read instructions from the markdown file
+_instruction_file = os.path.join(os.path.dirname(__file__), "dynamic_instruction.md")
+with open(_instruction_file, "r", encoding="utf-8") as f:
+    dynamic_instruction = f.read()
 
 
 agent = Agent(
     name="Takhleeq AI Assistant",
-    instructions=RAG_INSTRUCTIONS,
+    instructions= dynamic_instruction,
     model=model,
     tools=[search_knowledge_base],
 )
+
+print("Loaded Instructions Length:", len(dynamic_instruction))
 
 # SQLite file for persistent session storage (OpenAI Agents SDK)
 SESSIONS_DB = os.path.join(os.path.dirname(__file__), "sessions", "conversations.db")
@@ -143,7 +127,7 @@ async def stream_agent_response(session, user_input):
     """
     result = Runner.run_streamed(agent, input=user_input, session=session)
     async for event in result.stream_events():
-        if event.type == "raw_response_event":
+        if event.type == "raw_Sesponse_event":
             if isinstance(event.data, ResponseTextDeltaEvent):
                 delta = event.data.delta or ""
                 if delta:

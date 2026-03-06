@@ -1,0 +1,38 @@
+import os
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# # --- API Keys ---
+OPENROUTER_API_KEY: str = os.getenv("OPENROUTER_API_KEY")
+
+# --- OpenRouter settings ---
+OPENROUTER_BASE_URL = os.getenv("OPENROUTER_BASE_URL")
+
+OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL")
+
+
+# OPENROUTER_IMAGE_MODEL = os.getenv("OPENROUTER_IMAGE_MODEL")
+
+# --- Paths ---
+BASE_DIR = Path(__file__).resolve().parent
+OUTPUT_DIR = BASE_DIR / "output"
+OUTPUT_DIR.mkdir(exist_ok=True)
+
+# --- Image defaults ---
+IMAGE_SIZE = "1024x1024"
+IMAGE_QUALITY = "high"
+# IMAGE_MODEL = "gpt-image-1"
+# IMAGE_MODEL = "black-forest-labs/flux.2-klein-4b"
+
+# IMAGE_MODEL="black-forest-labs/flux.2-max"
+
+
+# GEMINI_API_KEY : str = os.getenv("GEMINI_API_KEY")
+# GEMINI_MODEL : str = os.getenv("GEMINI_MODEL")
+# GEMINI_IMAGE_MODEL : str = os.getenv("GEMINI_IMAGE_MODEL")
+# GEMINI_BASE_URL : str = os.getenv("GEMINI_BASE_URL")
+
+FLUX_IMAGE_MODEL : str = os.getenv("FLUX_IMAGE_MODEL", "black-forest-labs/flux-schnell")

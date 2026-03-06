@@ -12,3 +12,9 @@ dependencies = [
     "python-docs>=0.1.0",
     "python-docx>=1.2.0",
 ]
+
+[tool.uv.workspace]
+members = [
+    "ai_services/ai_chatbot",
+    "ai_services/ai_design_generation_visualization",
+]

@@ -1,0 +1,114 @@
+from __future__ import annotations
+
+from pydantic import BaseModel, Field
+
+
+class DesignRequest(BaseModel):
+    """Request payload for product visualization."""
+
+    prompt: str = Field(
+        ...,
+        description="Text prompt describing the desired design (e.g. 'floral pattern with gold accents').",
+    )
+    reference_image: str | None = Field(
+        default=None,
+        description="Optional base64-encoded reference image for style guidance.",
+    )
+    product_image: str = Field(
+        ...,
+        description="Base64-encoded image of the product to apply the design onto.",
+    )
+    product_type: str = Field(
+        ...,
+        description="Type of product (e.g. 't-shirt', 'mug', 'phone-case').",
+    )
+    product_color: str = Field(
+        ...,
+        description="Dominant color of the product (e.g. 'white', 'navy blue').",
+    )
+
+
+class DesignResponse(BaseModel):
+    """Response payload containing all generated images."""
+
+    design_image: str = Field(
+        ..., description="Base64-encoded generated design image."
+    )
+    visualization_image: str = Field(
+        ...,
+        description="Base64-encoded image showing the design applied on the product.",
+    )
+    enhanced_image: str = Field(
+        ...,
+        description="Base64-encoded final image with color-enhanced design on the product.",
+    )
+    description: str = Field(
+        ...,
+        description="AI-generated description of the final visualization.",
+    )
+
+
+class GenerateDesignRequest(BaseModel):
+    """Request payload for generating a design only (no product application)."""
+
+    prompt: str = Field(
+        ...,
+        description="Text prompt describing the desired design.",
+    )
+    reference_image: str | None = Field(
+        default=None,
+        description="Optional base64-encoded reference image for style guidance.",
+    )
+
+
+class GenerateDesignResponse(BaseModel):
+    """Response payload for design-only generation."""
+
+    design_image: str = Field(
+        ..., description="Base64-encoded generated design image."
+    )
+    description: str = Field(
+        ..., description="AI-generated description of the design."
+    )
+    image_url: str = Field(
+        ..., description="URL path to view the saved design image (e.g. /output/design_abc123.png)."
+    )
+
+
+class ApplyDesignRequest(BaseModel):
+    """Request payload for applying a user-uploaded design onto a product."""
+
+    design_image: str = Field(
+        ..., description="Base64-encoded design image to apply onto the product."
+    )
+    product_image: str = Field(
+        ..., description="Base64-encoded image of the product."
+    )
+    product_type: str = Field(
+        ..., description="Type of product (e.g. 't-shirt', 'mug', 'phone-case')."
+    )
+    product_color: str = Field(
+        ..., description="Dominant color of the product (e.g. 'white', 'navy blue')."
+    )
+    prompt: str = Field(
+        default="Apply the design naturally onto the product",
+        description="Optional instructions for how to apply the design.",
+    )
+
+
+class ApplyDesignResponse(BaseModel):
+    """Response payload with the design applied onto the product."""
+
+    visualization_image: str = Field(
+        ..., description="Base64-encoded image with the design applied on the product."
+    )
+    enhanced_image: str = Field(
+        ..., description="Base64-encoded color-enhanced final image."
+    )
+    description: str = Field(
+        ..., description="Description of the result."
+    )
+    image_url: str = Field(
+        ..., description="URL path to view the final image."
+    )
+
