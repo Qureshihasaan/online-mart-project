@@ -1,3 +1,4 @@
+import json, asyncio
 from aiokafka import AIOKafkaProducer
 from fastapi import Depends, FastAPI 
 from contextlib import asynccontextmanager
@@ -5,9 +6,7 @@ from typing import Annotated, AsyncGenerator
 from sqlmodel import Session, select
 from .producer import kafka_producer
 from .database import create_db_and_tables, get_db 
-import asyncio
 from .model import Payment , payment_response
-import json
 from fastapi import HTTPException
 from .consumer import consume_messages
 from . import setting
@@ -31,7 +30,6 @@ app : FastAPI = FastAPI(lifespan=lifespan , version="1.0.0")
 async def create_payment(payment : Payment, session : Annotated[Session, Depends(get_db)],
                          producer : Annotated[AIOKafkaProducer, Depends(kafka_producer)]
                          ):
-    # payment = Payment(user_id=user_id, order_id=order_id, amount=amount , status="Pending")
     payment_dict = {field : getattr (payment, field) for field in payment.dict()}
     payment_json = json.dumps(payment_dict).encode("utf-8")
     print("Payment_json" , payment_json)
@@ -47,12 +45,6 @@ async def create_payment(payment : Payment, session : Annotated[Session, Depends
         session.rollback()
         raise HTTPException(status_code=500, detail="Error Sending payment to kafka..")
     return payment
-    # payment.status = "Completed"
-    # session.add(payment)
-    # session.commit()
-    
-
-    # return {"payment_id": payment.id, "status":payment.status}
 
     
 

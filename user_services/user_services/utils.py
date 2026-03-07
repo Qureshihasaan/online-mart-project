@@ -4,10 +4,6 @@ from typing import Optional
 from . import setting
 
 
-
-
-
-
 def create_access_token(username : str , user_id : int , expires_delta : timedelta):
     encode = {"sub" : username, "id" : user_id}
     expires = datetime.utcnow() + expires_delta

@@ -8,14 +8,14 @@ from .schema import bcrypt_context , authenticate_user
 from .consumer import consume
 from .producer import kafka_producer
 from .database import create_db_and_tables , get_session
-import asyncio
+import asyncio, json
 from .model import User, CreateUser , Token 
 from sqlmodel import Session , select
-import json
 from psycopg2 import IntegrityError
 from . import setting
-from .producer import kafka_producer
-from .setting import ACCESS_TOKEN_EXPIRE_MINUTES
+from fastapi.middleware.cors import CORSMiddleware
+from .utils import create_access_token , decode_access_token , verify_access_token
+from .schema import authenticate_user
 
 
 @asynccontextmanager
@@ -32,7 +32,6 @@ async def lifespan(app:FastAPI)->AsyncGenerator[None,None]:
 
 app : FastAPI = FastAPI(lifespan=lifespan , version="1.0.0")
 
-from fastapi.middleware.cors import CORSMiddleware
 
 app.add_middleware(
     CORSMiddleware,

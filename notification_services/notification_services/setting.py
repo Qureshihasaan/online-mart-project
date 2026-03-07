@@ -3,10 +3,10 @@ from starlette.datastructures import Secret
 
 try: 
     config = Config(".env")
-
+    print("✓ .env file found and loaded")
 except FileNotFoundError:
     config = Config("")
-
+    print("✗ .env file NOT found, using empty config")
 
 # DATA_BASE_URL = config("DATA_BASE_URL" , cast=Secret)
 

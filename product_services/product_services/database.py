@@ -1,7 +1,6 @@
 from sqlmodel import SQLModel , Field , create_engine , Session
 from typing import Optional
 from . import setting
-# import json
 
 class Product(SQLModel , table = True):
     product_id : Optional[int] = Field(default= None , primary_key=True)
@@ -11,14 +10,6 @@ class Product(SQLModel , table = True):
     # created_at = Field(default= datetime.now)
     price : float = Field(gt=0)
 
-
-# connection_string = str(DATABASE_URL).replace(
-#     "postgresql" , "postgresql + psycopg2")
-
-
-# engine = create_engine(
-#     connection_string 
-# )
 
 connection_strings = str(setting.PRODUCT_SERVICE_DATABASE_URL).replace(
     "postgresql" , "postgresql+psycopg2"

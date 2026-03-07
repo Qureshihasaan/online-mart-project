@@ -1,17 +1,13 @@
 from fastapi import FastAPI , Depends , HTTPException
 from aiokafka import AIOKafkaProducer
 from contextlib import asynccontextmanager
-import asyncio
+import asyncio,  json
 from itertools import product
 from sqlalchemy.exc import OperationalError
 from sqlalchemy import text
 from typing import AsyncGenerator , Annotated
-import json
 from sqlmodel import select
-
-
 from . import setting
-
 from .database import Product , Session , create_db_and_tables , get_session
 from .consumer import consume_messages
 from .producer import kafka_producer
@@ -36,10 +32,7 @@ app : FastAPI = FastAPI(lifespan=lifespan , version="1.0.0")
 #     with Session(engine) as session:
 #         yield session
 
-
-
-              
-              
+           
               
 @app.post("/product" , response_model = Product)
 async def product_service(product : Product , producer : Annotated[AIOKafkaProducer , Depends(kafka_producer)],

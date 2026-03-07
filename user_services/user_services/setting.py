@@ -1,19 +1,18 @@
 from starlette.config import Config
 from starlette.datastructures import Secret
 
-try:
+try: 
     config = Config(".env")
+    print("✓ .env file found and loaded")
 except FileNotFoundError:
-    config = Config()
+    config = Config("")
+    print("✗ .env file NOT found, using empty config")
 
 
 USER_SERVICE_DATABASE_URL = config("USER_SERVICE_DATABASE_URL", cast=Secret)
 KAFKA_BOOTSTRAP_SERVER = config("KAFKA_BOOTSTRAP_SERVER", cast=str)
 KAFKA_USER_TOPIC = config("KAFKA_USER_TOPIC", cast=str)
 KAFKA_CONSUMER_GROUP_ID_FOR_USER = config("KAFKA_CONSUMER_GROUP_ID_FOR_USER", cast=str)
-
-# TEST_DATABASE_URL = config("TEST_DATABASE_URL", cast=Secret)
-
 
 KAFKA_TOPIC_FROM_USER_TO_ORDER = config("KAFKA_TOPIC_FROM_USER_TO_ORDER", cast=str)
 
