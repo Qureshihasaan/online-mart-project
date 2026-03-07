@@ -78,8 +78,8 @@ async def product_service(product : Product , producer : Annotated[AIOKafkaProdu
     except Exception as e:
         print("Error Sending to Kafka", e)
     
-    # Sync to Pinecone (AI Search)
-    upsert_to_pinecone(product)
+    # Sync to Pinecone (AI Search) — TODO: implement upsert_to_pinecone
+    # upsert_to_pinecone(product)
     
     return product
 
@@ -115,8 +115,8 @@ async def update_product(product_id : int , product : Product ,
     except Exception as e:
         print("Error Sending to Kafka", e)  
     
-    # Sync to Pinecone
-    upsert_to_pinecone(db_product)
+    # Sync to Pinecone — TODO: implement upsert_to_pinecone
+    # upsert_to_pinecone(db_product)
 
     return db_product
 
@@ -181,7 +181,7 @@ async def delete_product(product_id : int , session : Annotated[Session, Depends
     except Exception as e:
         print("Error sending to Kafka:", e)
     
-    # Sync to Pinecone
-    delete_from_pinecone(product_id)
+    # Sync to Pinecone — TODO: implement delete_from_pinecone
+    # delete_from_pinecone(product_id)
 
     return db_product
