@@ -7,8 +7,8 @@ class Product(SQLModel , table = True):
     Product_name : str = Field(default=None)
     Product_details : str = Field(default=None)
     product_quantity : int = Field(default=0)
-    # created_at = Field(default= datetime.now)
     price : float = Field(gt=0)
+    product_image : Optional[str] = Field(default=None, description="Base64-encoded product image")
 
 
 connection_strings = str(setting.PRODUCT_SERVICE_DATABASE_URL).replace(

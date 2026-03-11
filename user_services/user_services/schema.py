@@ -15,5 +15,3 @@ def authenticate_user(username : str , password :str , db : Annotated[Session,De
     if not bcrypt_context.verify(password, user.hashed_password):
         return False
     return user
-
-

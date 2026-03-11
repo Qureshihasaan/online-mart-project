@@ -112,3 +112,44 @@ class ApplyDesignResponse(BaseModel):
         ..., description="URL path to view the final image."
     )
 
+
+# ---------------------------------------------------------------------------
+# AI Center models
+# ---------------------------------------------------------------------------
+
+
+class AICenterCreateRequest(BaseModel):
+    """Request to create a new AI Center design from a user idea."""
+
+    user_idea: str = Field(
+        ...,
+        description="The user's design idea / text prompt.",
+    )
+    product_id: int = Field(
+        ...,
+        description="ID of the product in the Product Service to apply the design onto.",
+    )
+    product_image: str | None = Field(
+        default=None,
+        description="Optional base64-encoded product image. If not provided, the service will try to fetch it from the Product Service.",
+    )
+    product_type: str = Field(
+        default="t-shirt",
+        description="Type of product (e.g. 't-shirt', 'mug', 'phone-case').",
+    )
+    product_color: str = Field(
+        default="white",
+        description="Dominant color of the product.",
+    )
+
+
+class AICenterResponse(BaseModel):
+    """Response containing an AI Center record."""
+
+    id: int
+    user_idea: str
+    design_from_gemini: str | None = None
+    product_id: int
+    final_product: str | None = None
+    status: str
+

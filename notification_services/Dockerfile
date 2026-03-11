@@ -15,8 +15,8 @@ RUN pip install uv
 
 COPY . .
 
-RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen
+# RUN --mount=type=cache,target=/root/.cache/uv uv sync
 
 EXPOSE 8000
 
-CMD [ "uvicorn" , "notification_services.main:app" , "--host"  , "0.0.0.0" , "--reload"]
+CMD [ "uv" , "run" , "uvicorn" , "notification_services.main:app" , "--host"  , "0.0.0.0" , "--reload"]

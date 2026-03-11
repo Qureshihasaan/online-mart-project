@@ -16,8 +16,8 @@ RUN pip install uv
 COPY pyproject.toml ./
 COPY . .
 
-RUN --mount=type=cache,target=/root/.cache/uv uv pip install --system -e .
+# RUN --mount=type=cache,target=/root/.cache/uv uv pip install --system -e .
 
 EXPOSE 8000
 
-CMD [ "uvicorn" , "inventory_services.main:app" , "--host" , "0.0.0.0" , "--reload"  ]
+CMD [ "uv" , "run" , "uvicorn" , "inventory_services.main:app" , "--host" , "0.0.0.0" , "--reload"  ]

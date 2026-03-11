@@ -5,12 +5,12 @@ from pydantic import EmailStr
 
 class Order(SQLModel , table=True):
     order_id : Optional[int] = Field(default=None, primary_key=True)
-    user_id : int 
-    # order_id : Optional[int] = Field(default=None , primary_key=True)
-    user_email : EmailStr = Field(index=True , nullable=False , unique=True)
+    user_id: Optional[int] = Field(default=None)
+    user_email : EmailStr = Field(index=True , nullable=False)
     product_id : int 
     total_amount : int = Field(default = None)
     product_quantity : int = Field(default=None)
+    product_price: int = Field(default=None)
     payment_status : str = Field(default="Pending")
 
 
@@ -20,6 +20,7 @@ class Order_request(SQLModel):
     product_id : int
     product_quantity : int
     total_amount : int
+    product_price: int = Field(default=None)
 
 class OrderResponse(SQLModel):
     order_id : int
@@ -27,6 +28,7 @@ class OrderResponse(SQLModel):
     product_id : int
     total_amount : int
     product_quantity : int
+    product_price: int = Field(default=None)
     payment_status : str
 
 
@@ -40,9 +42,6 @@ class create_user(SQLModel):
     username : str
     password : str
 
-# class User(BaseModel):
-#     username : str
-#     password : str
 
 
 connection_string = str(setting.ORDER_DATABASE_URL).replace(

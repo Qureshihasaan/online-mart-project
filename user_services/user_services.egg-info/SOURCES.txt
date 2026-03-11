@@ -6,6 +6,7 @@ user_services/database.py
 user_services/main.py
 user_services/model.py
 user_services/producer.py
+user_services/role_checker.py
 user_services/schema.py
 user_services/setting.py
 user_services/utils.py

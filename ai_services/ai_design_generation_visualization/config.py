@@ -35,4 +35,13 @@ IMAGE_QUALITY = "high"
 # GEMINI_IMAGE_MODEL : str = os.getenv("GEMINI_IMAGE_MODEL")
 # GEMINI_BASE_URL : str = os.getenv("GEMINI_BASE_URL")
 
-FLUX_IMAGE_MODEL : str = os.getenv("FLUX_IMAGE_MODEL", "black-forest-labs/flux-schnell")
+FLUX_IMAGE_MODEL : str = os.getenv("FLUX_IMAGE_MODEL")
+
+# --- Kafka ---
+KAFKA_BOOTSTRAP_SERVER: str = os.getenv("KAFKA_BOOTSTRAP_SERVER")
+KAFKA_DESIGN_TOPIC: str = os.getenv("KAFKA_DESIGN_TOPIC")
+KAFKA_PRODUCT_TOPIC: str = os.getenv("KAFKA_PRODUCT_TOPIC")
+KAFKA_CONSUMER_GROUP_ID: str = os.getenv("KAFKA_CONSUMER_GROUP_ID")
+
+# --- Database ---
+AI_CENTER_DATABASE_URL: str = os.getenv("AI_CENTER_DATABASE_URL")

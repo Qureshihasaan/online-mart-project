@@ -1,0 +1,15 @@
+README.md
+pyproject.toml
+notification_services/__init__.py
+notification_services/database.py
+notification_services/email_services.py
+notification_services/main.py
+notification_services/setting.py
+notification_services.egg-info/PKG-INFO
+notification_services.egg-info/SOURCES.txt
+notification_services.egg-info/dependency_links.txt
+notification_services.egg-info/requires.txt
+notification_services.egg-info/top_level.txt
+notification_services/Consumer/kafka_order_consumer.py
+notification_services/Consumer/kafka_payment_consumer.py
+notification_services/Consumer/kafka_user_consumer.py

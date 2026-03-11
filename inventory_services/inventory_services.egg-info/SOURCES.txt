@@ -1,0 +1,15 @@
+README.md
+pyproject.toml
+inventory_services/Producer_for_order.py
+inventory_services/__init__.py
+inventory_services/conusmer.py
+inventory_services/database.py
+inventory_services/main.py
+inventory_services/model.py
+inventory_services/producer.py
+inventory_services/setting.py
+inventory_services.egg-info/PKG-INFO
+inventory_services.egg-info/SOURCES.txt
+inventory_services.egg-info/dependency_links.txt
+inventory_services.egg-info/requires.txt
+inventory_services.egg-info/top_level.txt

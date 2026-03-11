@@ -20,3 +20,6 @@ KAFKA_TOPIC_FROM_USER_TO_ORDER = config("KAFKA_TOPIC_FROM_USER_TO_ORDER", cast=s
 SECRET_KEY = config("SECRET_KEY", cast=Secret)
 ALGORITHM = config("ALGORITHMS", cast=str)
 ACCESS_TOKEN_EXPIRE_MINUTES = config("ACCESS_TOKEN_EXPIRE_MINUTES", cast=int)
+
+### Google OAuth
+GOOGLE_CLIENT_ID = config("GOOGLE_CLIENT_ID", cast=str, default="")

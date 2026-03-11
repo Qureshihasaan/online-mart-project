@@ -6,7 +6,7 @@ from aiokafka import AIOKafkaProducer
 from .consumer import consume_messages
 # from .consumer_for_inventory import inventory_cosnumer
 from .producer import kafka_producer
-import json , asyncio
+import json , asyncio, httpx
 # from .authenticate import verify_token     
 # from fastapi.security import OAuth2PasswordRequestForm
 from . import setting

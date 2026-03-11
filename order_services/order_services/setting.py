@@ -23,7 +23,7 @@ KAFKA_TOPIC_FROM_USER_TO_ORDER = config("KAFKA_TOPIC_FROM_USER_TO_ORDER", cast=s
 
 # KAFKA_ORDER_STATUS_TOPIC = config("KAFKA_ORDER_STATUS_TOPIC", cast=str)
 
-# SECRET_KEY = config("SECRET_KEY" , cast=str)
-# ALGORITHM = config("ALGORITHM", cast=str)
+SECRET_KEY = config("SECRET_KEY" , cast=str)
+ALGORITHMS = config("ALGORITHMS", cast=str)
 
 # KAFKA_PAYMENT_TOPIC =config("PAYMENT_REQUEST_TOPIC", cast=str)

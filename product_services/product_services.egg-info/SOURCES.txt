@@ -1,0 +1,13 @@
+README.md
+pyproject.toml
+product_services/__init__.py
+product_services/consumer.py
+product_services/database.py
+product_services/main.py
+product_services/producer.py
+product_services/setting.py
+product_services.egg-info/PKG-INFO
+product_services.egg-info/SOURCES.txt
+product_services.egg-info/dependency_links.txt
+product_services.egg-info/requires.txt
+product_services.egg-info/top_level.txt

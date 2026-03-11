@@ -11,76 +11,148 @@ Requires-Dist: psycopg2-binary>=2.9.9
 Requires-Dist: aiokafka>=0.12.0
 Requires-Dist: starlette>=0.41.0
 Requires-Dist: passlib[bcrypt]>=1.7.4
+Requires-Dist: bcrypt==4.0.1
 Requires-Dist: pydantic[email]>=2.12.5
 Requires-Dist: python-jose[cryptography]>=3.5.0
 Requires-Dist: python-multipart>=0.0.22
+Requires-Dist: google-auth>=2.0.0
+Requires-Dist: requests>=2.31.0
 
-# User Service
+# 👤 User Service
 
-This service manages user accounts and authentication for the Online Mart platform. It handles user registration, profile management, and authentication processes.
+> Handles user registration, JWT-based authentication, and account management for the Online Mart platform.
 
-## Features
+---
 
-- **User Management**: Create, read, update, and delete user accounts
-- **Authentication**: Secure user authentication and session management
-- **Profile Management**: Manage user profile information and preferences
-- **Event Streaming**: Publishes user events to Kafka for real-time updates
-- **RESTful API**: FastAPI-based endpoints for user operations
+## ✨ Features
 
-## API Endpoints
+- **User Registration** — Secure signup with bcrypt password hashing
+- **JWT Authentication** — Token-based login with configurable expiration
+- **Token Utilities** — Generate, decode, and verify access tokens
+- **User Management** — List, view, and delete user accounts
+- **Kafka Events** — Publishes user lifecycle events
+- **CORS Support** — Cross-origin resource sharing enabled
 
-- `POST /users` - Register a new user
-- `GET /users/` - Retrieve all users
-- `GET /users/{user_id}` - Get details for a specific user
-- `PUT /users/{user_id}` - Update user profile
-- `DELETE /users/{user_id}` - Delete a user account
-- `POST /auth/login` - Authenticate user and generate token
-- `POST /auth/logout` - Invalidate user session
+---
 
-## Data Model
+## 🚀 API Endpoints
 
-Each user includes:
-- `user_id`: Unique identifier (auto-generated)
-- `username`: Unique username for login
-- `email`: User's email address
-- `password_hash`: Hashed password for security
-- `first_name`: User's first name
-- `last_name`: User's last name
-- `phone_number`: Contact phone number
-- `address`: User's address information
-- `created_at`: Account creation timestamp
-- `updated_at`: Last profile update timestamp
-- `is_active`: Account status indicator
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/Signup` | Register a new user |
+| `POST` | `/login` | Login and receive a JWT access token |
+| `GET` | `/get_access_token` | Generate an access token by username |
+| `GET` | `/decode_token` | Decode and inspect a JWT token |
+| `GET` | `/user/all` | Retrieve all users |
+| `GET` | `/user/me` | Get the current authenticated user |
+| `GET` | `/user/{user_id}` | Get a specific user (requires token) |
+| `DELETE` | `/user/delete/{user_id}` | Delete a user |
 
-## Dependencies
+---
 
-- FastAPI: Web framework
-- SQLModel: Database ORM
-- AIOKafka: Kafka integration for event streaming
-- Passlib: Password hashing
-- JWT: Token-based authentication
-- PostgreSQL: Persistent storage
+## 📊 Data Models
 
-## Environment Variables
+**User** (database table)
 
-- `USER_SERVICE_DATABASE_URL`: PostgreSQL connection string
-- `BOOTSTRAP_SERVER`: Kafka broker address
-- `KAFKA_USER_TOPIC`: Topic name for user events
-- `KAFKA_CONSUMER_GROUP_ID_FOR_USER`: Consumer group ID
-- `JWT_SECRET_KEY`: Secret key for JWT token generation
-- `JWT_ALGORITHM`: Algorithm for JWT token encoding
-- `ACCESS_TOKEN_EXPIRE_MINUTES`: Token expiration time
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `int` | Primary key (auto-generated) |
+| `username` | `str` | Unique username |
+| `email` | `EmailStr` | Unique email address |
+| `hashed_password` | `str` | Bcrypt-hashed password |
 
-## Usage
+**CreateUser** (signup request body)
 
-1. Start the service: `uvicorn user_services.main:app --reload`
-2. The service will be available at `http://localhost:8002`
-3. API documentation available at `/docs`
+| Field | Type | Description |
+|-------|------|-------------|
+| `username` | `str` | Desired username |
+| `email` | `EmailStr` | Email address |
+| `plain_password` | `str` | Plain-text password (hashed before storage) |
 
-## Event Flow
+**Token** (login response)
 
-- User registration triggers a "User_Registered" event to Kafka
-- Profile updates trigger a "User_Profile_Updated" event to Kafka
-- User deletions trigger a "User_Deleted" event to Kafka
-- Authentication events trigger "User_Authenticated" events to Kafka
-- Events are consumed by other services for coordinated user management
+| Field | Type | Description |
+|-------|------|-------------|
+| `access_token` | `str` | JWT access token |
+| `token_type` | `str` | Always `"bearer"` |
+
+---
+
+## 📂 Project Structure
+
+```
+user_services/
+├── user_services/
+│   ├── __init__.py
+│   ├── main.py        # FastAPI app — endpoints
+│   ├── model.py       # SQLModel models (User, CreateUser, Token)
+│   ├── schema.py      # bcrypt context & authenticate_user
+│   ├── utils.py       # JWT create/decode/verify functions
+│   ├── database.py    # Engine & session setup
+│   ├── setting.py     # Environment config
+│   ├── consumer.py    # Kafka consumer
+│   └── producer.py    # Kafka producer
+├── tests/
+├── Dockerfile
+├── pyproject.toml
+└── .env
+```
+
+---
+
+## ⚙️ Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `USER_SERVICE_DATABASE_URL` | PostgreSQL connection string |
+| `KAFKA_BOOTSTRAP_SERVER` | Kafka broker address |
+| `KAFKA_USER_TOPIC` | Topic for user events |
+| `KAFKA_CONSUMER_GROUP_ID_FOR_USER` | Kafka consumer group ID |
+| `KAFKA_TOPIC_FROM_USER_TO_ORDER` | Topic for user→order communication |
+| `SECRET_KEY` | JWT signing secret key |
+| `ALGORITHMS` | JWT algorithm (e.g. `HS256`) |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | Token expiration in minutes |
+
+---
+
+## 🛠️ Tech Stack
+
+| Technology | Purpose |
+|------------|---------|
+| **FastAPI** | REST API framework |
+| **SQLModel** | Database ORM |
+| **AIOKafka** | Kafka producer/consumer |
+| **Passlib** | Password hashing (bcrypt) |
+| **python-jose** | JWT encoding/decoding |
+| **psycopg2** | PostgreSQL adapter |
+
+---
+
+## 🐳 Docker
+
+```bash
+docker build -t user-service .
+docker run -p 8002:8000 --env-file .env user-service
+```
+
+---
+
+## 🏃 Local Development
+
+```bash
+uv sync
+uvicorn user_services.main:app --reload
+```
+
+- **Swagger UI** — http://localhost:8002/docs
+- **ReDoc** — http://localhost:8002/redoc
+
+---
+
+## 📡 Kafka Event Flow
+
+| Event | Trigger |
+|-------|---------|
+| `User_Created` | New user registered via `/Signup` |
+
+Events are consumed by **Notification Service** to send welcome emails.

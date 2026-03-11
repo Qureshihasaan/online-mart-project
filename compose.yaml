@@ -38,6 +38,8 @@ services:
       - broker
     ports:
       - "8002:8000" # Expose container port 8000 to host port 8000
+    environment:
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
     restart: on-failure
 
   order_services:
@@ -97,12 +99,20 @@ services:
       - ./ai_services/ai_design_generation_visualization:/code
     ports:
       - "8007:8000"
+    depends_on:
+      - broker
     environment:
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
       - OPENROUTER_BASE_URL=${OPENROUTER_BASE_URL}
       - OPENROUTER_MODEL=${OPENROUTER_MODEL}
       - FLUX_IMAGE_MODEL=${FLUX_IMAGE_MODEL}
+      - KAFKA_BOOTSTRAP_SERVER=broker:19092
+      - KAFKA_DESIGN_TOPIC=design_topic
+      - KAFKA_PRODUCT_TOPIC=product_topic
+      - KAFKA_CONSUMER_GROUP_ID=ai-design-group
+      - AI_CENTER_DATABASE_URL=${AI_CENTER_DATABASE_URL}
     restart: on-failure
+
 
   broker:
     image: apache/kafka:3.7.0
