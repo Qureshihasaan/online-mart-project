@@ -16,7 +16,7 @@ COPY pyproject.toml /code/pyproject.toml
 
 COPY . .
 
-RUN uv sync --frozen --no-install-project
+# RUN uv sync --frozen --no-install-project
 
 EXPOSE 8000
 
