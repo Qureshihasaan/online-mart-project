@@ -41,42 +41,42 @@ jobs:
 
     - name: Build and push Product Service
       run: |
-        docker build -t ${{ env.ACR_LOGIN_SERVER }}/product-service:${{ github.sha }} ./product_services
+        docker build -t ${{ env.ACR_LOGIN_SERVER }}/product-service:${{ github.sha }} \ -f ./product_services/Dockerfile .
         docker push ${{ env.ACR_LOGIN_SERVER }}/product-service:${{ github.sha }}
 
     - name: Build and push Inventory Service
       run: |
-        docker build -t ${{ env.ACR_LOGIN_SERVER }}/inventory-service:${{ github.sha }} ./inventory_services
+        docker build -t ${{ env.ACR_LOGIN_SERVER }}/inventory-service:${{ github.sha }} \ -f ./inventory_services/Dockerfile .
         docker push ${{ env.ACR_LOGIN_SERVER }}/inventory-service:${{ github.sha }}
 
     - name: Build and push User Service
       run: |
-        docker build -t ${{ env.ACR_LOGIN_SERVER }}/user-service:${{ github.sha }} ./user_services
+        docker build -t ${{ env.ACR_LOGIN_SERVER }}/user-service:${{ github.sha }} \ -f  ./user_services/Dockerfile .
         docker push ${{ env.ACR_LOGIN_SERVER }}/user-service:${{ github.sha }}
 
     - name: Build and push Order Service
       run: |
-        docker build -t ${{ env.ACR_LOGIN_SERVER }}/order-service:${{ github.sha }} ./order_services
+        docker build -t ${{ env.ACR_LOGIN_SERVER }}/order-service:${{ github.sha }} \ -f ./order_services/Dockerfile .
         docker push ${{ env.ACR_LOGIN_SERVER }}/order-service:${{ github.sha }}
 
     - name: Build and push Notification Service
       run: |
-        docker build -t ${{ env.ACR_LOGIN_SERVER }}/notification-service:${{ github.sha }} ./notification_services
+        docker build -t ${{ env.ACR_LOGIN_SERVER }}/notification-service:${{ github.sha }} \ -f ./notification_services/Dockerfile .
         docker push ${{ env.ACR_LOGIN_SERVER }}/notification-service:${{ github.sha }}
 
     - name: Build and push Payment Service
       run: |
-        docker build -t ${{ env.ACR_LOGIN_SERVER }}/payment-service:${{ github.sha }} ./payment_services
+        docker build -t ${{ env.ACR_LOGIN_SERVER }}/payment-service:${{ github.sha }} \ -f ./payment_services/Dockerfile .
         docker push ${{ env.ACR_LOGIN_SERVER }}/payment-service:${{ github.sha }}
 
     - name: Build and push AI Chatbot Service
       run: |
-        docker build -t ${{ env.ACR_LOGIN_SERVER }}/ai-chatbot-service:${{ github.sha }} ./ai_services/ai_chatbot
+        docker build -t ${{ env.ACR_LOGIN_SERVER }}/ai-chatbot-service:${{ github.sha }} \ -f ./ai_services/ai_chatbot/Dockerfile .
         docker push ${{ env.ACR_LOGIN_SERVER }}/ai-chatbot-service:${{ github.sha }}
 
     - name: Build and push AI Design Visualization Service
       run: |
-        docker build -t ${{ env.ACR_LOGIN_SERVER }}/ai-design-service:${{ github.sha }} ./ai_services/ai_design_generation_visualization
+        docker build -t ${{ env.ACR_LOGIN_SERVER }}/ai-design-service:${{ github.sha }} \ -f ./ai_services/ai_design_generation_visualization/Dockerfile .
         docker push ${{ env.ACR_LOGIN_SERVER }}/ai-design-service:${{ github.sha }}
 
     - name: Deploy Product Service to Container Apps
