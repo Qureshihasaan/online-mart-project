@@ -2,6 +2,7 @@ README.md
 pyproject.toml
 inventory_services/Producer_for_order.py
 inventory_services/__init__.py
+inventory_services/authenticate.py
 inventory_services/conusmer.py
 inventory_services/database.py
 inventory_services/main.py

@@ -9,6 +9,7 @@ from . import setting
 from .database import Product , Session , create_db_and_tables , get_session
 from .consumer import consume_messages
 from .producer import kafka_producer
+from .authenticate import validate_role
 
 
      
@@ -42,6 +43,7 @@ async def product_service(
     price: Annotated[float, Form()],
     producer: Annotated[AIOKafkaProducer, Depends(kafka_producer)],
     session: Annotated[Session, Depends(get_session)],
+    token_data: Annotated[dict, Depends(validate_role(["seller", "admin"]))],
     file: Optional[UploadFile] = File(None),
 ) -> Product:
     """Create a new product with an optional image upload (multipart form)."""
@@ -76,7 +78,9 @@ async def product_service(
 
 
 @app.get("/product/" , response_model=list[Product])
-async def get_product(session : Annotated[Session , Depends(get_session)]):
+async def get_product(session : Annotated[Session , Depends(get_session)],
+                      token_data: Annotated[dict, Depends(validate_role(["seller", "admin"]))]
+                      ):
      products = session.exec(select(Product)).all()
      return  products
 
@@ -84,7 +88,9 @@ async def get_product(session : Annotated[Session , Depends(get_session)]):
 @app.put("/product/{product_id}" , response_model= Product)
 async def update_product(product_id : int , product : Product , 
                          producer : Annotated[AIOKafkaProducer, Depends(kafka_producer)],
-                         session : Annotated[Session , Depends(get_session)]):
+                         session : Annotated[Session , Depends(get_session)],
+                         token_data: Annotated[dict, Depends(validate_role(["seller", "admin"]))]
+                         ):
     db_product = session.get(Product , product_id)
     if not db_product:
         raise HTTPException(status_code=404 , detail = "Product Not Found")
@@ -106,7 +112,8 @@ async def update_product(product_id : int , product : Product ,
  
 @app.delete("/product/{product_id}", response_model= Product)	
 async def delete_product(product_id : int , session : Annotated[Session, Depends(get_session)],
-                    producer : Annotated[AIOKafkaProducer, Depends(kafka_producer)]
+                    producer : Annotated[AIOKafkaProducer, Depends(kafka_producer)],
+                    token_data: Annotated[dict, Depends(validate_role(["seller", "admin"]))]
                    ):
     db_product = session.get(Product, product_id)
     if not db_product:
@@ -130,6 +137,7 @@ async def delete_product(product_id : int , session : Annotated[Session, Depends
 async def get_product_image(
     product_id: int,
     session: Session = Depends(get_session),
+    token_data: dict = Depends(validate_role(["seller", "admin"]))
 ):
     """Get the base64-encoded image for a product."""
     db_product = session.get(Product, product_id)

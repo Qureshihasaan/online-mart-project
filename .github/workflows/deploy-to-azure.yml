@@ -1,0 +1,287 @@
+name: Deploy to Azure Container Apps
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+env:
+  ACR_NAME: ${{ secrets.ACR_NAME || 'onlinemartcontainerregistry' }}
+  RESOURCE_GROUP: ${{ secrets.RESOURCE_GROUP || 'onlinemart-rg' }}
+  CONTAINERAPPS_ENVIRONMENT: ${{ secrets.ENVIRONMENT_NAME || 'onlinemart-env' }}
+  POSTGRES_FQDN: ${{ secrets.POSTGRES_FQDN }}
+  EVENTHUB_NAMESPACE: ${{ secrets.EVENTHUB_NAMESPACE || 'onlinemartkafka' }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Login to Azure CLI
+      uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Get ACR Login Server
+      run: |
+        ACR_LOGIN_SERVER=$(az acr show --name ${{ env.ACR_NAME }} --resource-group ${{ env.RESOURCE_GROUP }} --query loginServer --output tsv)
+        echo "ACR_LOGIN_SERVER=$ACR_LOGIN_SERVER" >> $GITHUB_ENV
+
+    - name: Login to ACR
+      run: |
+        az acr login --name ${{ env.ACR_NAME }}
+
+    - name: Build and push Product Service
+      run: |
+        docker build -t ${{ env.ACR_LOGIN_SERVER }}/product-service:${{ github.sha }} ./product_services
+        docker push ${{ env.ACR_LOGIN_SERVER }}/product-service:${{ github.sha }}
+
+    - name: Build and push Inventory Service
+      run: |
+        docker build -t ${{ env.ACR_LOGIN_SERVER }}/inventory-service:${{ github.sha }} ./inventory_services
+        docker push ${{ env.ACR_LOGIN_SERVER }}/inventory-service:${{ github.sha }}
+
+    - name: Build and push User Service
+      run: |
+        docker build -t ${{ env.ACR_LOGIN_SERVER }}/user-service:${{ github.sha }} ./user_services
+        docker push ${{ env.ACR_LOGIN_SERVER }}/user-service:${{ github.sha }}
+
+    - name: Build and push Order Service
+      run: |
+        docker build -t ${{ env.ACR_LOGIN_SERVER }}/order-service:${{ github.sha }} ./order_services
+        docker push ${{ env.ACR_LOGIN_SERVER }}/order-service:${{ github.sha }}
+
+    - name: Build and push Notification Service
+      run: |
+        docker build -t ${{ env.ACR_LOGIN_SERVER }}/notification-service:${{ github.sha }} ./notification_services
+        docker push ${{ env.ACR_LOGIN_SERVER }}/notification-service:${{ github.sha }}
+
+    - name: Build and push Payment Service
+      run: |
+        docker build -t ${{ env.ACR_LOGIN_SERVER }}/payment-service:${{ github.sha }} ./payment_services
+        docker push ${{ env.ACR_LOGIN_SERVER }}/payment-service:${{ github.sha }}
+
+    - name: Build and push AI Chatbot Service
+      run: |
+        docker build -t ${{ env.ACR_LOGIN_SERVER }}/ai-chatbot-service:${{ github.sha }} ./ai_services/ai_chatbot
+        docker push ${{ env.ACR_LOGIN_SERVER }}/ai-chatbot-service:${{ github.sha }}
+
+    - name: Build and push AI Design Visualization Service
+      run: |
+        docker build -t ${{ env.ACR_LOGIN_SERVER }}/ai-design-service:${{ github.sha }} ./ai_services/ai_design_generation_visualization
+        docker push ${{ env.ACR_LOGIN_SERVER }}/ai-design-service:${{ github.sha }}
+
+    - name: Deploy Product Service to Container Apps
+      run: |
+        az containerapp create \
+          --name product-service \
+          --resource-group ${{ env.RESOURCE_GROUP }} \
+          --environment ${{ env.CONTAINERAPPS_ENVIRONMENT }} \
+          --image ${{ env.ACR_LOGIN_SERVER }}/product-service:${{ github.sha }} \
+          --target-port 8000 \
+          --ingress external \
+          --registry-server ${{ env.ACR_LOGIN_SERVER }} \
+          --registry-username ${{ secrets.ACR_USERNAME }} \
+          --registry-password ${{ secrets.ACR_PASSWORD }} \
+          --cpu 1.0 \
+          --memory 2Gi \
+          --env-vars \
+            PRODUCT_SERVICE_DATABASE_URL="postgresql://${{ secrets.POSTGRES_ADMIN_USER }}:${{ secrets.POSTGRES_ADMIN_PASSWORD }}@${{ env.POSTGRES_FQDN }}:5432/products_db" \
+            KAFKA_BOOTSTRAP_SERVER="${{ env.EVENTHUB_NAMESPACE }}.servicebus.windows.net:9093" \
+            KAFKA_PRODUCT_TOPIC="product-topic" \
+            KAFKA_CONSUMER_GROUP_ID_FOR_PRODUCT="product-group" \
+            GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
+            PINECONE_API_KEY="${{ secrets.PINECONE_API_KEY }}" \
+            PINECONE_INDEX_NAME="${{ secrets.PINECONE_INDEX_NAME }}" \
+            SECRET_KEY="${{ secrets.SECRET_KEY }}" \
+            ALGORITHMS="${{ secrets.ALGORITHMS }}" \
+            KAFKA_SASL_MECHANISM="PLAIN" \
+            KAFKA_SECURITY_PROTOCOL="SASL_SSL" \
+            KAFKA_SASL_JAAS_CONFIG="org.apache.kafka.common.security.plain.PlainLoginModule required username='$ConnectionString' password='Endpoint=sb://${{ env.EVENTHUB_NAMESPACE }}.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=${{ secrets.EVENTHUB_SHARED_ACCESS_KEY }}';"
+
+    - name: Deploy Inventory Service to Container Apps
+      run: |
+        az containerapp create \
+          --name inventory-service \
+          --resource-group ${{ env.RESOURCE_GROUP }} \
+          --environment ${{ env.CONTAINERAPPS_ENVIRONMENT }} \
+          --image ${{ env.ACR_LOGIN_SERVER }}/inventory-service:${{ github.sha }} \
+          --target-port 8000 \
+          --ingress external \
+          --registry-server ${{ env.ACR_LOGIN_SERVER }} \
+          --registry-username ${{ secrets.ACR_USERNAME }} \
+          --registry-password ${{ secrets.ACR_PASSWORD }} \
+          --cpu 1.0 \
+          --memory 2Gi \
+          --env-vars \
+            INVENTORY_SERVICE_DATABASE_URL="postgresql://${{ secrets.POSTGRES_ADMIN_USER }}:${{ secrets.POSTGRES_ADMIN_PASSWORD }}@${{ env.POSTGRES_FQDN }}:5432/inventory_db" \
+            KAFKA_BOOTSTRAP_SERVER="${{ env.EVENTHUB_NAMESPACE }}.servicebus.windows.net:9093" \
+            KAFKA_INVENTORY_TOPIC="inventory-topic" \
+            KAFKA_CONSUMER_GROUP_ID_FOR_INVENTORY="inventory-group" \
+            SECRET_KEY="${{ secrets.SECRET_KEY }}" \
+            ALGORITHMS="${{ secrets.ALGORITHMS }}" \
+            KAFKA_SASL_MECHANISM="PLAIN" \
+            KAFKA_SECURITY_PROTOCOL="SASL_SSL" \
+            KAFKA_SASL_JAAS_CONFIG="org.apache.kafka.common.security.plain.PlainLoginModule required username='$ConnectionString' password='Endpoint=sb://${{ env.EVENTHUB_NAMESPACE }}.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=${{ secrets.EVENTHUB_SHARED_ACCESS_KEY }}';"
+
+    - name: Deploy User Service to Container Apps
+      run: |
+        az containerapp create \
+          --name user-service \
+          --resource-group ${{ env.RESOURCE_GROUP }} \
+          --environment ${{ env.CONTAINERAPPS_ENVIRONMENT }} \
+          --image ${{ env.ACR_LOGIN_SERVER }}/user-service:${{ github.sha }} \
+          --target-port 8000 \
+          --ingress external \
+          --registry-server ${{ env.ACR_LOGIN_SERVER }} \
+          --registry-username ${{ secrets.ACR_USERNAME }} \
+          --registry-password ${{ secrets.ACR_PASSWORD }} \
+          --cpu 1.0 \
+          --memory 2Gi \
+          --env-vars \
+            USER_SERVICE_DATABASE_URL="postgresql://${{ secrets.POSTGRES_ADMIN_USER }}:${{ secrets.POSTGRES_ADMIN_PASSWORD }}@${{ env.POSTGRES_FQDN }}:5432/users_db" \
+            KAFKA_BOOTSTRAP_SERVER="${{ env.EVENTHUB_NAMESPACE }}.servicebus.windows.net:9093" \
+            KAFKA_USER_TOPIC="user-topic" \
+            KAFKA_CONSUMER_GROUP_ID_FOR_USER="user-group" \
+            SECRET_KEY="${{ secrets.SECRET_KEY }}" \
+            ALGORITHMS="${{ secrets.ALGORITHMS }}" \
+            GOOGLE_CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID }}" \
+            KAFKA_SASL_MECHANISM="PLAIN" \
+            KAFKA_SECURITY_PROTOCOL="SASL_SSL" \
+            KAFKA_SASL_JAAS_CONFIG="org.apache.kafka.common.security.plain.PlainLoginModule required username='$ConnectionString' password='Endpoint=sb://${{ env.EVENTHUB_NAMESPACE }}.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=${{ secrets.EVENTHUB_SHARED_ACCESS_KEY }}';"
+
+    - name: Deploy Order Service to Container Apps
+      run: |
+        az containerapp create \
+          --name order-service \
+          --resource-group ${{ env.RESOURCE_GROUP }} \
+          --environment ${{ env.CONTAINERAPPS_ENVIRONMENT }} \
+          --image ${{ env.ACR_LOGIN_SERVER }}/order-service:${{ github.sha }} \
+          --target-port 8000 \
+          --ingress external \
+          --registry-server ${{ env.ACR_LOGIN_SERVER }} \
+          --registry-username ${{ secrets.ACR_USERNAME }} \
+          --registry-password ${{ secrets.ACR_PASSWORD }} \
+          --cpu 1.0 \
+          --memory 2Gi \
+          --env-vars \
+            ORDER_SERVICE_DATABASE_URL="postgresql://${{ secrets.POSTGRES_ADMIN_USER }}:${{ secrets.POSTGRES_ADMIN_PASSWORD }}@${{ env.POSTGRES_FQDN }}:5432/orders_db" \
+            KAFKA_BOOTSTRAP_SERVER="${{ env.EVENTHUB_NAMESPACE }}.servicebus.windows.net:9093" \
+            KAFKA_ORDER_TOPIC="order-topic" \
+            KAFKA_CONSUMER_GROUP_ID_FOR_ORDER="order-group" \
+            SECRET_KEY="${{ secrets.SECRET_KEY }}" \
+            ALGORITHMS="${{ secrets.ALGORITHMS }}" \
+            KAFKA_SASL_MECHANISM="PLAIN" \
+            KAFKA_SECURITY_PROTOCOL="SASL_SSL" \
+            KAFKA_SASL_JAAS_CONFIG="org.apache.kafka.common.security.plain.PlainLoginModule required username='$ConnectionString' password='Endpoint=sb://${{ env.EVENTHUB_NAMESPACE }}.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=${{ secrets.EVENTHUB_SHARED_ACCESS_KEY }}';"
+
+    - name: Deploy Notification Service to Container Apps
+      run: |
+        az containerapp create \
+          --name notification-service \
+          --resource-group ${{ env.RESOURCE_GROUP }} \
+          --environment ${{ env.CONTAINERAPPS_ENVIRONMENT }} \
+          --image ${{ env.ACR_LOGIN_SERVER }}/notification-service:${{ github.sha }} \
+          --target-port 8000 \
+          --ingress external \
+          --registry-server ${{ env.ACR_LOGIN_SERVER }} \
+          --registry-username ${{ secrets.ACR_USERNAME }} \
+          --registry-password ${{ secrets.ACR_PASSWORD }} \
+          --cpu 1.0 \
+          --memory 2Gi \
+          --env-vars \
+            NOTIFICATION_SERVICE_DATABASE_URL="postgresql://${{ secrets.POSTGRES_ADMIN_USER }}:${{ secrets.POSTGRES_ADMIN_PASSWORD }}@${{ env.POSTGRES_FQDN }}:5432/notifications_db" \
+            KAFKA_BOOTSTRAP_SERVER="${{ env.EVENTHUB_NAMESPACE }}.servicebus.windows.net:9093" \
+            KAFKA_NOTIFICATION_TOPIC="notification-topic" \
+            KAFKA_CONSUMER_GROUP_ID_FOR_NOTIFICATION="notification-group" \
+            SECRET_KEY="${{ secrets.SECRET_KEY }}" \
+            ALGORITHMS="${{ secrets.ALGORITHMS }}" \
+            KAFKA_SASL_MECHANISM="PLAIN" \
+            KAFKA_SECURITY_PROTOCOL="SASL_SSL" \
+            KAFKA_SASL_JAAS_CONFIG="org.apache.kafka.common.security.plain.PlainLoginModule required username='$ConnectionString' password='Endpoint=sb://${{ env.EVENTHUB_NAMESPACE }}.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=${{ secrets.EVENTHUB_SHARED_ACCESS_KEY }}';"
+
+    - name: Deploy Payment Service to Container Apps
+      run: |
+        az containerapp create \
+          --name payment-service \
+          --resource-group ${{ env.RESOURCE_GROUP }} \
+          --environment ${{ env.CONTAINERAPPS_ENVIRONMENT }} \
+          --image ${{ env.ACR_LOGIN_SERVER }}/payment-service:${{ github.sha }} \
+          --target-port 8000 \
+          --ingress external \
+          --registry-server ${{ env.ACR_LOGIN_SERVER }} \
+          --registry-username ${{ secrets.ACR_USERNAME }} \
+          --registry-password ${{ secrets.ACR_PASSWORD }} \
+          --cpu 1.0 \
+          --memory 2Gi \
+          --env-vars \
+            PAYMENT_SERVICE_DATABASE_URL="postgresql://${{ secrets.POSTGRES_ADMIN_USER }}:${{ secrets.POSTGRES_ADMIN_PASSWORD }}@${{ env.POSTGRES_FQDN }}:5432/payments_db" \
+            KAFKA_BOOTSTRAP_SERVER="${{ env.EVENTHUB_NAMESPACE }}.servicebus.windows.net:9093" \
+            KAFKA_PAYMENT_TOPIC="payment-topic" \
+            KAFKA_CONSUMER_GROUP_ID_FOR_PAYMENT="payment-group" \
+            SECRET_KEY="${{ secrets.SECRET_KEY }}" \
+            ALGORITHMS="${{ secrets.ALGORITHMS }}" \
+            KAFKA_SASL_MECHANISM="PLAIN" \
+            KAFKA_SECURITY_PROTOCOL="SASL_SSL" \
+            KAFKA_SASL_JAAS_CONFIG="org.apache.kafka.common.security.plain.PlainLoginModule required username='$ConnectionString' password='Endpoint=sb://${{ env.EVENTHUB_NAMESPACE }}.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=${{ secrets.EVENTHUB_SHARED_ACCESS_KEY }}';"
+
+    - name: Deploy AI Chatbot Service to Container Apps
+      run: |
+        az containerapp create \
+          --name ai-chatbot-service \
+          --resource-group ${{ env.RESOURCE_GROUP }} \
+          --environment ${{ env.CONTAINERAPPS_ENVIRONMENT }} \
+          --image ${{ env.ACR_LOGIN_SERVER }}/ai-chatbot-service:${{ github.sha }} \
+          --target-port 8000 \
+          --ingress external \
+          --registry-server ${{ env.ACR_LOGIN_SERVER }} \
+          --registry-username ${{ secrets.ACR_USERNAME }} \
+          --registry-password ${{ secrets.ACR_PASSWORD }} \
+          --cpu 1.0 \
+          --memory 2Gi \
+          --env-vars \
+            OPENROUTER_API_KEY="${{ secrets.OPENROUTER_API_KEY }}" \
+            PINECONE_API_KEY="${{ secrets.PINECONE_API_KEY }}" \
+            PINECONE_INDEX_NAME="${{ secrets.PINECONE_INDEX_NAME }}"
+
+    - name: Deploy AI Design Visualization Service to Container Apps
+      run: |
+        az containerapp create \
+          --name ai-design-service \
+          --resource-group ${{ env.RESOURCE_GROUP }} \
+          --environment ${{ env.CONTAINERAPPS_ENVIRONMENT }} \
+          --image ${{ env.ACR_LOGIN_SERVER }}/ai-design-service:${{ github.sha }} \
+          --target-port 8000 \
+          --ingress external \
+          --registry-server ${{ env.ACR_LOGIN_SERVER }} \
+          --registry-username ${{ secrets.ACR_USERNAME }} \
+          --registry-password ${{ secrets.ACR_PASSWORD }} \
+          --cpu 1.0 \
+          --memory 2Gi \
+          --env-vars \
+            OPENROUTER_API_KEY="${{ secrets.OPENROUTER_API_KEY }}" \
+            OPENROUTER_BASE_URL="${{ secrets.OPENROUTER_BASE_URL }}" \
+            OPENROUTER_MODEL="${{ secrets.OPENROUTER_MODEL }}" \
+            FLUX_IMAGE_MODEL="${{ secrets.FLUX_IMAGE_MODEL }}" \
+            KAFKA_BOOTSTRAP_SERVER="${{ env.EVENTHUB_NAMESPACE }}.servicebus.windows.net:9093" \
+            KAFKA_DESIGN_TOPIC="design-topic" \
+            KAFKA_PRODUCT_TOPIC="product-topic" \
+            KAFKA_CONSUMER_GROUP_ID="ai-design-group" \
+            AI_CENTER_DATABASE_URL="postgresql://${{ secrets.POSTGRES_ADMIN_USER }}:${{ secrets.POSTGRES_ADMIN_PASSWORD }}@${{ env.POSTGRES_FQDN }}:5432/ai_center_db" \
+            KAFKA_SASL_MECHANISM="PLAIN" \
+            KAFKA_SECURITY_PROTOCOL="SASL_SSL" \
+            KAFKA_SASL_JAAS_CONFIG="org.apache.kafka.common.security.plain.PlainLoginModule required username='$ConnectionString' password='Endpoint=sb://${{ env.EVENTHUB_NAMESPACE }}.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=${{ secrets.EVENTHUB_SHARED_ACCESS_KEY }}';"
+
+    - name: Show deployment status
+      run: |
+        echo "Deployment completed!"
+        echo "Services deployed to Azure Container Apps:"
+        az containerapp list --resource-group ${{ env.RESOURCE_GROUP }} --output table

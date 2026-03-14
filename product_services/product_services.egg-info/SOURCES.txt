@@ -1,6 +1,7 @@
 README.md
 pyproject.toml
 product_services/__init__.py
+product_services/authenticate.py
 product_services/consumer.py
 product_services/database.py
 product_services/main.py

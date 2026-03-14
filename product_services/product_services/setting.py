@@ -22,5 +22,9 @@ PINECONE_API_KEY = config("PINECONE_API_KEY", cast=Secret)
 PINECONE_INDEX_NAME = config("PINECONE_INDEX_NAME", cast=str, default="online-mart-products")
 
 
+# Security
+SECRET_KEY = config("SECRET_KEY", cast=str)
+ALGORITHMS = config("ALGORITHMS", cast=str)
+
 print(f"DATABASE_URL loaded: {str(PRODUCT_SERVICE_DATABASE_URL)[:50]}...")  # Print first 50 chars
 print(f"BOOTSTRAP_SERVER: {KAFKA_BOOTSTRAP_SERVER}")
