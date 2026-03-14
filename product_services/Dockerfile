@@ -12,7 +12,7 @@ RUN  apt-get update && apt-get install -y\
 RUN pip install --upgrade pip
 RUN pip install uv
 
-COPY pyproject.toml ./
+COPY ["pyproject.toml", "."]
 COPY . .
 
 RUN uv sync --frozen --no-install-project
