@@ -12,7 +12,7 @@ RUN  apt-get update && apt-get install -y\
 RUN pip install --upgrade pip
 RUN pip install uv
 
-COPY pyproject.toml ./
+COPY pyproject.toml /code/pyproject.toml
 COPY . .
 
 # RUN --mount=type=cache,target=/root/.cache/uv uv sync 

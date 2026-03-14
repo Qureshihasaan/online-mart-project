@@ -15,7 +15,7 @@ RUN pip install --upgrade pip
 RUN pip install uv
 
 
-COPY pyproject.toml ./
+COPY pyproject.toml /code/pyproject.toml
 COPY . .
 
 
