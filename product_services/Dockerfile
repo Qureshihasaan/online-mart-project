@@ -22,7 +22,7 @@ COPY pyproject.toml /code/pyproject.toml
 COPY . .
 
 # Install dependencies using uv
-RUN uv sync --frozen
+# RUN uv sync --frozen
 
 EXPOSE 8000
 
