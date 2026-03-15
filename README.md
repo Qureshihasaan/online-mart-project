@@ -10,7 +10,7 @@ An advanced microservices-based e-commerce platform featuring AI-powered search,
 - **Modern Tech Stack**: Python, FastAPI, SQLModel, Docker, PostgreSQL
 - **AI-Powered Search**: Pinecone vector database for semantic product search
 - **Design Generation**: AI-powered product design and visualization capabilities
-- **Cloud-Native**: Ready for Azure deployment with Container Apps
+- **Cloud-Native**: Containerized with Docker for easy deployment anywhere
 
 ## 🏗️ Architecture Overview
 
@@ -34,7 +34,7 @@ The system consists of multiple interconnected microservices:
 - **Frontend UI**: Chainlit for AI chatbot interface
 - **Containerization**: Docker, Docker Compose
 - **Dependency Management**: uv (Python package manager)
-- **Cloud**: Azure Container Apps, Azure PostgreSQL, Azure Event Hubs
+- **Messaging**: Apache Kafka for event-driven architecture
 
 ## 📁 Directory Structure
 
@@ -109,47 +109,29 @@ D:\online-mart-project/
 docker compose down
 ```
 
-## ☁️ Azure Deployment
+## 🚢 Deployment
 
-The application is configured for deployment to Azure Container Apps with the following components:
+The application is containerized with Docker Compose for easy deployment anywhere. You can run it locally or deploy it to any container orchestration platform.
 
-- Azure Container Registry (ACR) for container images
-- Azure Container Apps for running the services
-- Azure PostgreSQL Flexible Server for databases
-- Azure Event Hubs (Kafka-compatible) for messaging
+### Local Deployment
 
-### Deployment Prerequisites
+For local development and testing, simply use Docker Compose:
 
-1. Azure account with appropriate permissions
-2. Azure CLI installed
-3. GitHub repository with the project
+1. Make sure you have Docker and Docker Compose installed
+2. Set up your environment variables in a `.env` file
+3. Run the services with Docker Compose:
 
-### Deployment Process
+```bash
+docker compose up -d
+```
 
-1. Set up the required GitHub secrets (as detailed in the deployment section)
-2. Push changes to the `main` branch to trigger the GitHub Action
-3. Monitor the deployment in the GitHub Actions tab
+### Custom Deployment
 
-The GitHub Action will:
-- Build Docker images for each service
-- Push images to Azure Container Registry
-- Deploy services to Azure Container Apps
-- Configure environment variables and connections
-
-### Required GitHub Secrets
-
-- `AZURE_CREDENTIALS`: Service principal credentials JSON
-- `ACR_NAME`: Azure Container Registry name
-- `ACR_USERNAME`: Container registry username
-- `ACR_PASSWORD`: Container registry password
-- `RESOURCE_GROUP`: Azure resource group name
-- `ENVIRONMENT_NAME`: Azure Container Apps environment name
-- `POSTGRES_FQDN`: Azure PostgreSQL server FQDN
-- `EVENTHUB_NAMESPACE`: Azure Event Hubs namespace
-- `POSTGRES_ADMIN_USER`: PostgreSQL admin username
-- `POSTGRES_ADMIN_PASSWORD`: PostgreSQL admin password
-- `EVENTHUB_SHARED_ACCESS_KEY`: Event Hub shared access key
-- All API keys (GEMINI_API_KEY, PINECONE_API_KEY, etc.)
+For custom deployments to cloud platforms or your own infrastructure:
+1. Build the Docker images using the provided Dockerfiles
+2. Push images to your preferred container registry
+3. Configure your environment with the necessary environment variables
+4. Deploy the services using your preferred container orchestration platform
 
 ## 🔐 Environment Variables
 
