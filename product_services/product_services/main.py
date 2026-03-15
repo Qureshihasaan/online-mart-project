@@ -10,16 +10,42 @@ from .database import Product , Session , create_db_and_tables , get_session
 from .consumer import consume_messages
 from .producer import kafka_producer
 from .authenticate import validate_role
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
      
 @asynccontextmanager
 async def lifespan(app : FastAPI) -> AsyncGenerator[None , None]:
-    print("Waiting for database to be ready...")
-    print("Tables Creating")
-    task = asyncio.create_task(consume_messages(setting.KAFKA_PRODUCT_TOPIC , setting.KAFKA_BOOTSTRAP_SERVER))
-    create_db_and_tables()
-    yield 
+    logger.info("Starting up product service...")
+    logger.info(f"Connecting to database: {str(setting.PRODUCT_SERVICE_DATABASE_URL)[:50]}...")
+    logger.info(f"Kafka bootstrap server: {setting.KAFKA_BOOTSTRAP_SERVER}")
+    logger.info(f"Kafka product topic: {setting.KAFKA_PRODUCT_TOPIC}")
+
+    try:
+        logger.info("Creating database tables...")
+        create_db_and_tables()
+        logger.info("Database tables created successfully.")
+    except Exception as e:
+        logger.error(f"Failed to create database tables: {e}")
+        raise
+
+    try:
+        logger.info("Starting Kafka consumer task...")
+        task = asyncio.create_task(consume_messages(setting.KAFKA_PRODUCT_TOPIC, setting.KAFKA_BOOTSTRAP_SERVER))
+        logger.info("Kafka consumer task started.")
+    except Exception as e:
+        logger.error(f"Failed to start Kafka consumer: {e}")
+        raise
+
+    yield
+
+    logger.info("Shutting down product service...")
+    # Note: The consumer task runs indefinitely, so cleanup might not be reached
+    # unless there's a specific shutdown mechanism 
 
 
 app : FastAPI = FastAPI(lifespan=lifespan , version="1.0.0")
@@ -149,4 +175,14 @@ async def get_product_image(
     return {
         "product_id": product_id,
         "product_image": db_product.product_image,
+    }
+
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for Azure Container Apps."""
+    return {
+        "status": "healthy",
+        "service": "product-service",
+        "message": "Product service is running and ready to accept requests"
     }
