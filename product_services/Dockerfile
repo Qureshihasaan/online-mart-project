@@ -17,7 +17,7 @@ RUN pip install uv
 
 # Copy project files
 COPY pyproject.toml /code/pyproject.toml
-COPY uv.lock /code/uv.lock  # Include lock file for reproducible builds
+# COPY uv.lock /code/uv.lock  
 
 COPY . .
 
