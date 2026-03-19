@@ -110,7 +110,7 @@ services:
       - KAFKA_DESIGN_TOPIC=design_topic
       - KAFKA_PRODUCT_TOPIC=product_topic
       - KAFKA_CONSUMER_GROUP_ID=ai-design-group
-      - AI_CENTER_DATABASE_URL=${AI_CENTER_DATABASE_URL}
+      # - AI_CENTER_DATABASE_URL=${AI_CENTER_DATABASE_URL}
     restart: on-failure
 
 

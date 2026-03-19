@@ -25,7 +25,7 @@ from sqlmodel import Session, select
 from aiokafka import AIOKafkaProducer
 
 import config
-from database import AICenter, create_db_and_tables, get_session, engine
+from database import AICenter
 from consumer import consume_product_events
 from producer import kafka_producer
 from model import (
@@ -48,11 +48,11 @@ async def lifespan(app: FastAPI):
     logger.info("Starting AI Design Visualization service …")
 
     # Create database tables
-    try:
-        create_db_and_tables()
-        logger.info("Database tables created successfully.")
-    except Exception as e:
-        logger.warning("Database setup skipped or failed: %s", e)
+    # try:
+    #     create_db_and_tables()
+    #     logger.info("Database tables created successfully.")
+    # except Exception as e:
+    #     logger.warning("Database setup skipped or failed: %s", e)
 
     # Start Kafka consumer in background
     consumer_task = asyncio.create_task(consume_product_events())
