@@ -1,22 +1,3 @@
-Metadata-Version: 2.4
-Name: product-services
-Version: 0.1.0
-Summary: Product microservice
-Requires-Python: >=3.12
-Description-Content-Type: text/markdown
-Requires-Dist: fastapi>=0.115.0
-Requires-Dist: uvicorn>=0.34.0
-Requires-Dist: sqlmodel>=0.0.22
-Requires-Dist: psycopg2-binary>=2.9.9
-Requires-Dist: aiokafka>=0.12.0
-Requires-Dist: starlette>=0.41.0
-Requires-Dist: pinecone>=8.0.1
-Requires-Dist: google-generativeai>=0.8.0
-Requires-Dist: python-jose[cryptography]>=3.3.0
-Requires-Dist: passlib[bcrypt]>=1.7.4
-Requires-Dist: pydantic>=2.0.0
-Requires-Dist: python-multipart>=0.0.22
-
 # 📦 Product Service
 
 > Manages the product catalog for the Online Mart platform — CRUD operations with Kafka event streaming for real-time inter-service communication.

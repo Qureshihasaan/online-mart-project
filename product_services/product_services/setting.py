@@ -1,6 +1,7 @@
 from starlette.config import Config
 from starlette.datastructures import Secret
 import logging
+import os
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -15,7 +16,19 @@ except FileNotFoundError:
 
 # Load environment variables with defaults for local development
 PRODUCT_SERVICE_DATABASE_URL = config("PRODUCT_SERVICE_DATABASE_URL", cast=Secret, default="postgresql://user:password@localhost:5432/products_db")
-KAFKA_BOOTSTRAP_SERVER = config("KAFKA_BOOTSTRAP_SERVER", cast=str, default="localhost:9092")
+
+# Kafka configuration - Aiven production deployment
+# AIVEN_KAFKA_BOOTSTRAP_SERVER is required for production
+AIVEN_KAFKA_BOOTSTRAP_SERVER = os.getenv("AIVEN_KAFKA_BOOTSTRAP_SERVER", "")
+KAFKA_BOOTSTRAP_SERVER = os.getenv("KAFKA_BOOTSTRAP_SERVER", "")
+
+# Use Aiven Kafka if configured
+if AIVEN_KAFKA_BOOTSTRAP_SERVER:
+    KAFKA_BOOTSTRAP_SERVER = AIVEN_KAFKA_BOOTSTRAP_SERVER
+    logger.info("✓ Using Aiven Kafka (SASL_SSL)")
+else:
+    logger.warning("⚠ AIVEN_KAFKA_BOOTSTRAP_SERVER not set. Kafka features will not work.")
+
 KAFKA_PRODUCT_TOPIC = config("KAFKA_PRODUCT_TOPIC", cast=str, default="product-topic")
 KAFKA_CONSUMER_GROUP_ID_FOR_PRODUCT = config("KAFKA_CONSUMER_GROUP_ID_FOR_PRODUCT", cast=str, default="product-group")
 
@@ -39,4 +52,4 @@ SECRET_KEY = config("SECRET_KEY", cast=str, default="dev-secret-key-change-in-pr
 ALGORITHMS = config("ALGORITHMS", cast=str, default="HS256")
 
 logger.info(f"DATABASE_URL loaded: {str(PRODUCT_SERVICE_DATABASE_URL)[:50]}...")  # Print first 50 chars
-logger.info(f"BOOTSTRAP_SERVER: {KAFKA_BOOTSTRAP_SERVER}")
+logger.info(f"KAFKA_BOOTSTRAP_SERVER: {KAFKA_BOOTSTRAP_SERVER}")

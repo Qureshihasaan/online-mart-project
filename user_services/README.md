@@ -1,25 +1,3 @@
-Metadata-Version: 2.4
-Name: user-services
-Version: 0.1.0
-Summary: User microservice
-Requires-Python: >=3.12
-Description-Content-Type: text/markdown
-Requires-Dist: fastapi>=0.115.0
-Requires-Dist: uvicorn>=0.34.0
-Requires-Dist: sqlmodel>=0.0.22
-Requires-Dist: psycopg2-binary>=2.9.9
-Requires-Dist: aiokafka>=0.12.0
-Requires-Dist: starlette>=0.41.0
-Requires-Dist: passlib[bcrypt]>=1.7.4
-Requires-Dist: bcrypt==4.0.1
-Requires-Dist: pydantic[email]>=2.12.5
-Requires-Dist: python-jose[cryptography]>=3.5.0
-Requires-Dist: python-multipart>=0.0.22
-Requires-Dist: google-auth>=2.0.0
-Requires-Dist: requests>=2.31.0
-Requires-Dist: confluent-kafka>=2.13.2
-Requires-Dist: python-dotenv==1.0.1
-
 # 👤 User Service
 
 > Handles user registration, JWT-based authentication, and account management for the Online Mart platform.

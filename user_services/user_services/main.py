@@ -181,11 +181,6 @@ async def google_auth(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-# ---------------------------------------------------------------------------
-# User Endpoints
-# ---------------------------------------------------------------------------
-
-
 @app.get("/get_access_token")
 def get_access_token(email: str, role: str = "buyer", user_id: Optional[int] = None):
     access_token_expire = timedelta(minutes=setting.ACCESS_TOKEN_EXPIRE_MINUTES)

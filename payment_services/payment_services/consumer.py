@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 from aiokafka import AIOKafkaConsumer
 from aiokafka.errors import KafkaConnectionError
 from . import setting
@@ -9,12 +10,31 @@ logging.basicConfig(level=logging.INFO)
 
 
 async def consume_messages(topic , bootstarpserver)->AIOKafkaConsumer:
+    # Build Kafka configuration with SSL/SASL support for Aiven
+    config = {
+        "bootstrap_servers": setting.KAFKA_BOOTSTRAP_SERVER,
+        "group_id": setting.KAFKA_CONSUMER_GROUP_ID_FOR_PAYMENT,
+        "auto_offset_reset": "earliest"
+    }
+
+    # Add Aiven SSL/SASL configuration
+    if os.getenv("AIVEN_KAFKA_BOOTSTRAP_SERVER") or os.getenv("AIVEN_KAFKA_USERNAME"):
+        config.update({
+            "security_protocol": "SASL_SSL",
+            "sasl_mechanism": "PLAIN",
+            "sasl_plain_username": os.getenv("AIVEN_KAFKA_USERNAME", ""),
+            "sasl_plain_password": os.getenv("AIVEN_KAFKA_PASSWORD", ""),
+        })
+        
+        ssl_cafile = os.getenv("AIVEN_SSL_CA_FILE")
+        if ssl_cafile:
+            config["ssl_cafile"] = ssl_cafile
+        
+        logging.info("✓ Using Aiven Kafka with SASL_SSL")
+
     consumer = AIOKafkaConsumer(
-        # 'payment_request',
         setting.KAFKA_PAYMENT_TOPIC,
-        bootstrap_servers=setting.KAFKA_BOOTSTRAP_SERVER,
-        group_id=setting.KAFKA_CONSUMER_GROUP_ID_FOR_PAYMENT,
-        auto_offset_reset="earliest"
+        **config
     )
 
     while True:
