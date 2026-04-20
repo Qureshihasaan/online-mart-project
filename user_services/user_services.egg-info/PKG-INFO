@@ -17,6 +17,8 @@ Requires-Dist: python-jose[cryptography]>=3.5.0
 Requires-Dist: python-multipart>=0.0.22
 Requires-Dist: google-auth>=2.0.0
 Requires-Dist: requests>=2.31.0
+Requires-Dist: confluent-kafka>=2.13.2
+Requires-Dist: python-dotenv==1.0.1
 
 # 👤 User Service
 

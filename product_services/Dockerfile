@@ -10,9 +10,9 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Upgrade pip and install uv
+# Upgrade pip and install uv and uvicorn
 RUN pip install --upgrade pip
-RUN pip install uv
+RUN pip install uv uvicorn
 
 # Copy project files
 COPY pyproject.toml /code/pyproject.toml

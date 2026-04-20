@@ -1,10 +1,26 @@
 from aiokafka import AIOKafkaProducer
 from . import setting
 import logging
+import os
 
 
 async def kafka_producer():
-    producer = AIOKafkaProducer(bootstrap_servers=str(setting.KAFKA_BOOTSTRAP_SERVER))
+    # Build Kafka configuration with SSL/SASL support for Aiven
+    config = {
+        "bootstrap_servers": str(setting.KAFKA_BOOTSTRAP_SERVER)
+    }
+    
+    # Add Aiven SSL/SASL configuration if using Aiven
+    aiven_bootstrap = os.getenv("AIVEN_KAFKA_BOOTSTRAP_SERVER", "")
+    if aiven_bootstrap:
+        config.update({
+            "security_protocol": "SASL_SSL",
+            "sasl_mechanism": "PLAIN",
+            "sasl_plain_username": os.getenv("AIVEN_KAFKA_USERNAME", ""),
+            "sasl_plain_password": os.getenv("AIVEN_KAFKA_PASSWORD", ""),
+        })
+    
+    producer = AIOKafkaProducer(**config)
 
     try:
         await producer.start()

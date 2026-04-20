@@ -29,7 +29,7 @@ The system consists of multiple interconnected microservices:
 
 - **Backend**: Python 3.12+, FastAPI
 - **Database**: PostgreSQL with SQLModel (SQLAlchemy + Pydantic)
-- **Message Broker**: Apache Kafka (Azure Event Hubs compatible)
+- **Message Broker**: Apache Kafka (Aiven Cloud)
 - **AI/ML**: Google Gemini, Pinecone vector database, OpenRouter API
 - **Frontend UI**: Chainlit for AI chatbot interface
 - **Containerization**: Docker, Docker Compose
@@ -88,7 +88,10 @@ D:\online-mart-project/
    ```
 
 4. Start all services:
+
+   **Production deployment with Aiven Kafka:**
    ```bash
+   # First, set AIVEN_KAFKA_BOOTSTRAP_SERVER and credentials in .env
    docker compose up -d
    ```
 
@@ -101,7 +104,6 @@ D:\online-mart-project/
    - Payment Service: http://localhost:8005
    - AI Chatbot: http://localhost:8006
    - AI Design Service: http://localhost:8007
-   - Kafka UI: http://localhost:8081
 
 ### Stopping Services
 
@@ -137,12 +139,35 @@ For custom deployments to cloud platforms or your own infrastructure:
 
 The application uses several environment variables for configuration:
 
+### Core Services
 - `GEMINI_API_KEY`: Google Gemini API key for AI services
 - `PINECONE_API_KEY`: Pinecone API key for vector database
 - `PINECONE_INDEX_NAME`: Name of the Pinecone index
-- `DATABASE_URL`: PostgreSQL connection string
-- `BOOTSTRAP_SERVER`: Kafka broker address
-- `KAFKA_*_TOPIC`: Various Kafka topic names
+- `*_DATABASE_URL`: PostgreSQL connection strings for each service
+- `SECRET_KEY`: JWT secret key for authentication
+- `ALGORITHMS`: JWT algorithm (default: HS256)
+
+### Kafka Configuration
+
+**For Production (Aiven Cloud Kafka):**
+- `AIVEN_KAFKA_BOOTSTRAP_SERVER`: Aiven Kafka service URL (e.g., `your-service.aivencloud.com:12345`)
+- `AIVEN_KAFKA_USERNAME`: Aiven authentication username (e.g., `avnadmin`)
+- `AIVEN_KAFKA_PASSWORD`: Aiven authentication password
+- `AIVEN_SSL_CA_FILE`: Path to SSL CA certificate (optional, recommended for production)
+
+When `AIVEN_KAFKA_BOOTSTRAP_SERVER` is set, the application automatically uses SASL_SSL encryption.
+
+### Kafka Topics
+- `KAFKA_PRODUCT_TOPIC`: Product-related events (default: `product-topic`)
+- `KAFKA_INVENTORY_TOPIC`: Inventory updates (default: `inventory-topic`)
+- `KAFKA_USER_TOPIC`: User-related events (default: `user-topic`)
+- `KAFKA_ORDER_TOPIC`: Order processing events (default: `order-topic`)
+- `KAFKA_PAYMENT_TOPIC`: Payment events (default: `payment-topic`)
+- `KAFKA_DESIGN_TOPIC`: Design generation requests (default: `design-topic`)
+
+### Other Services
+- `GOOGLE_CLIENT_ID`: Google OAuth client ID
+- `SMTP_EMAIL` & `SMTP_PASSWORD`: Email notification credentials
 - `OPENROUTER_API_KEY`: OpenRouter API key for AI models
 
 ## 🧪 Testing
@@ -179,6 +204,17 @@ The system uses the following Kafka topics for inter-service communication:
 - `payment-topic`: Payment events
 - `design-topic`: Design generation requests
 
+## ☁️ Kafka Deployment
+
+This platform uses **Aiven Cloud Kafka** for production deployment:
+
+### Production (Aiven Cloud Kafka)
+- **Setup**: See [AIVEN_KAFKA_SETUP.md](AIVEN_KAFKA_SETUP.md)
+- **Features**: Managed service, SSL encryption, high availability
+- **Monitoring**: Via Aiven Console
+
+**Configuration** is done by setting `AIVEN_KAFKA_BOOTSTRAP_SERVER` and credentials in your `.env` file.
+
 ## 🚨 Troubleshooting
 
 ### Common Issues
@@ -187,6 +223,14 @@ The system uses the following Kafka topics for inter-service communication:
 2. **Database connection issues**: Verify PostgreSQL connection strings and credentials
 3. **Kafka connectivity**: Ensure the Kafka broker is running and accessible
 4. **AI service errors**: Confirm API keys are valid and have sufficient quota
+
+### Kafka/Aiven Issues
+
+**Using Aiven Cloud Kafka:**
+- Verify `AIVEN_KAFKA_BOOTSTRAP_SERVER` is set in `.env`
+- Check credentials are correct (username, password)
+- Look for logs: "✓ Aiven Kafka configuration loaded (SASL_SSL)"
+- See [AIVEN_KAFKA_SETUP.md](AIVEN_KAFKA_SETUP.md) for detailed troubleshooting
 
 ### Logs
 
@@ -202,6 +246,11 @@ docker compose logs -f <service_name>
 3. Make your changes
 4. Add tests if applicable
 5. Submit a pull request
+
+### Development Guidelines
+
+- Test Kafka integration with Aiven before deploying to production
+- Follow the setup guide: [AIVEN_KAFKA_SETUP.md](AIVEN_KAFKA_SETUP.md)
 
 ## 📄 License
 

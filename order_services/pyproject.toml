@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "order-services"
+version = "0.1.0"
+description = "Order microservice"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn>=0.34.0",
+    "sqlmodel>=0.0.22",
+    "psycopg2-binary>=2.9.9",
+    "aiokafka>=0.12.0",
+    "starlette>=0.41.0",
+    "pydantic[email]>=2.12.5",
+    "httpx>=0.28.1",
+    "passlib[bcrypt]>=1.7.4",
+    "jose>=1.0.0",
+    "python-jose[cryptography]>=3.5.0",
+]

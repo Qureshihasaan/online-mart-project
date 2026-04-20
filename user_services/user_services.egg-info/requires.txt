@@ -11,3 +11,5 @@ python-jose[cryptography]>=3.5.0
 python-multipart>=0.0.22
 google-auth>=2.0.0
 requests>=2.31.0
+confluent-kafka>=2.13.2
+python-dotenv==1.0.1
