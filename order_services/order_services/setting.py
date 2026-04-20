@@ -1,6 +1,8 @@
 from starlette.config import Config
 from starlette.datastructures import Secret
 
+from user_services.user_services.setting import ACCESS_TOKEN_EXPIRE_MINUTES
+
 try: 
     config = Config(".env")
     print("✓ .env file found and loaded")
@@ -25,5 +27,8 @@ KAFKA_TOPIC_FROM_USER_TO_ORDER = config("KAFKA_TOPIC_FROM_USER_TO_ORDER", cast=s
 
 SECRET_KEY = config("SECRET_KEY" , cast=str)
 ALGORITHMS = config("ALGORITHMS", cast=str)
+
+ACCESS_TOKEN_EXPIRE_MINUTES = config("ACCESS_TOKEN_EXPIRE_MINUTES", cast=int)
+
 
 # KAFKA_PAYMENT_TOPIC =config("PAYMENT_REQUEST_TOPIC", cast=str)
