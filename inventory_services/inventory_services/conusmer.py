@@ -14,40 +14,14 @@ loop = asyncio.get_event_loop()
 logging.basicConfig(level=logging.INFO)
 
 
-# async def consume_message():
-#     consumer = AIOKafkaConsumer(
-#         setting.KAFKA_PRODUCT_TOPIC,
-#         bootstrap_servers=setting.BOOTSTRAP_SERVER,
-#         group_id=setting.KAFKA_CONSUMER_GROUP_ID_FOR_INVENTORY,
-#         auto_offset_reset="earliest",
-#         value_deserializer= lambda x: json.loads(x.decode("utf-8")
-#         )
-
-
-async def consume_product_events():
-    # Build Kafka configuration with SSL/SASL support for Aiven
-    config = {
-        "bootstrap_servers": setting.KAFKA_BOOTSTRAP_SERVER,
-        "group_id": setting.KAFKA_CONSUMER_GROUP_ID_FOR_INVENTORY,
-        "auto_offset_reset": "earliest"
-    }
-
-    # Add Aiven SSL/SASL configuration
-    if os.getenv("AIVEN_KAFKA_BOOTSTRAP_SERVER") or os.getenv("AIVEN_KAFKA_USERNAME"):
-        config.update({
-            "security_protocol": "SASL_SSL",
-            "sasl_mechanism": "PLAIN",
-            "sasl_plain_username": os.getenv("AIVEN_KAFKA_USERNAME", ""),
-            "sasl_plain_password": os.getenv("AIVEN_KAFKA_PASSWORD", ""),
-        })
-        
-        ssl_cafile = os.getenv("AIVEN_SSL_CA_FILE")
-        if ssl_cafile:
-            config["ssl_cafile"] = ssl_cafile
-
+async def consume_message():
     consumer = AIOKafkaConsumer(
         setting.KAFKA_PRODUCT_TOPIC,
-        **config
+        bootstrap_servers=setting.BOOTSTRAP_SERVER,
+        group_id=setting.KAFKA_CONSUMER_GROUP_ID_FOR_INVENTORY,
+        auto_offset_reset="earliest",
+        value_deserializer= lambda x: json.loads(x.decode("utf-8")),
+
     )
 
     await consumer.start()
@@ -168,28 +142,14 @@ def delete_inventory(product_id):
 
 async def consume_order_events():
     # Build Kafka configuration with SSL/SASL support for Aiven
-    config = {
-        "bootstrap_servers": setting.KAFKA_BOOTSTRAP_SERVER,
-        "group_id": setting.KAFKA_CONSUMER_GROUP_ID_FOR_INVENTORY,
-        "auto_offset_reset": "earliest"
-    }
-
-    # Add Aiven SSL/SASL configuration
-    if os.getenv("AIVEN_KAFKA_BOOTSTRAP_SERVER") or os.getenv("AIVEN_KAFKA_USERNAME"):
-        config.update({
-            "security_protocol": "SASL_SSL",
-            "sasl_mechanism": "PLAIN",
-            "sasl_plain_username": os.getenv("AIVEN_KAFKA_USERNAME", ""),
-            "sasl_plain_password": os.getenv("AIVEN_KAFKA_PASSWORD", ""),
-        })
-        
-        ssl_cafile = os.getenv("AIVEN_SSL_CA_FILE")
-        if ssl_cafile:
-            config["ssl_cafile"] = ssl_cafile
 
     consumer = AIOKafkaConsumer(
         setting.KAFKA_ORDER_TOPIC,
-        **config
+        setting.KAFKA_BOOTSTRAP_SERVER,
+        setting.KAFKA_CONSUMER_GROUP_ID_FOR_INVENTORY,
+        auto_offset_reset="earliest",
+        
+        
     )
 
     await consumer.start()

@@ -1,5 +1,5 @@
 from aiokafka import AIOKafkaConsumer
-import logging , asyncio
+import logging, asyncio
 from .. import setting
 from aiokafka.errors import KafkaConnectionError
 from ..email_services import send_email
@@ -10,36 +10,17 @@ loop = asyncio.get_event_loop()
 logging.basicConfig(level=logging.INFO)
 
 
-async def New_user_created_consumer()-> AIOKafkaConsumer:
-    # Build Kafka configuration with SSL/SASL support for Aiven
-    config = {
-        "bootstrap_servers": setting.KAFKA_BOOTSTRAP_SERVER,
-        "group_id": setting.KAFKA_CONSUMER_GROUP_ID_FOR_NOTIFICATION_SERVICE,
-        "auto_offset_reset": "earliest"
-    }
-
-    # Add Aiven SSL/SASL configuration
-    if os.getenv("AIVEN_KAFKA_BOOTSTRAP_SERVER") or os.getenv("AIVEN_KAFKA_USERNAME"):
-        config.update({
-            "security_protocol": "SASL_SSL",
-            "sasl_mechanism": "PLAIN",
-            "sasl_plain_username": os.getenv("AIVEN_KAFKA_USERNAME", ""),
-            "sasl_plain_password": os.getenv("AIVEN_KAFKA_PASSWORD", ""),
-        })
-        
-        ssl_cafile = os.getenv("AIVEN_SSL_CA_FILE")
-        if ssl_cafile:
-            config["ssl_cafile"] = ssl_cafile
-        
-        logging.info("✓ Using Aiven Kafka with SASL_SSL")
+async def New_user_created_consumer() -> AIOKafkaConsumer:
 
     consumer = AIOKafkaConsumer(
-        setting.KAFKA_USER_TOPIC,
-        **config
+        setting.KAFKA_ORDER_CREATED_TOPIC,
+        bootstrap_server=setting.KAFKA_BOOTSTRAP_SERVER,
+        group_id=setting.KAFKA_CONSUMER_GROUP_ID_FOR_NOTIFICATION_SERVICE,
+        auto_offset_reset="earliest",
     )
 
     while True:
-        try :
+        try:
             await consumer.start()
             logging.info("Consumer Started...")
             break
@@ -78,19 +59,21 @@ async def New_user_created_consumer()-> AIOKafkaConsumer:
                     )
                     logging.info(f"Email successfullt sent to {user_email}.")
                 except Exception as email_error:
-                    logging.error(f"Failed to send email to {user_email}: {email_error}")
+                    logging.error(
+                        f"Failed to send email to {user_email}: {email_error}"
+                    )
 
     except json.JSONDecodeError as decode_error:
-            logging.error(f"Failed to decode message: {msg.value}. Error: {decode_error}")
+        logging.error(f"Failed to decode message: {msg.value}. Error: {decode_error}")
 
     except KeyError as key_error:
         logging.error(f"Missing key in event: {key_error}")
-                # send_email(
-                #     to=event["email"],
-                #     subject="Welcome to Online Mart",
-                #     body=f"Welcome to Online Mart! Thank you for joining us. We're excited to have you on board. Best regards, The Online Mart Team",
-                # )
-                # print("Email Sent Successfully....")
+        # send_email(
+        #     to=event["email"],
+        #     subject="Welcome to Online Mart",
+        #     body=f"Welcome to Online Mart! Thank you for joining us. We're excited to have you on board. Best regards, The Online Mart Team",
+        # )
+        # print("Email Sent Successfully....")
 
     finally:
         await consumer.stop()

@@ -12,34 +12,15 @@ loop = asyncio.get_event_loop()
 logging.basicConfig(level=logging.INFO)
 
 
-async def kafka_order_Created_consumer()-> AIOKafkaConsumer:
-    # Build Kafka configuration with SSL/SASL support for Aiven
-    config = {
-        "bootstrap_servers": setting.KAFKA_BOOTSTRAP_SERVER,
-        "group_id": setting.KAFKA_CONSUMER_GROUP_ID_FOR_NOTIFICATION_SERVICE,
-        "auto_offset_reset": "earliest"
-    }
-
-    # Add Aiven SSL/SASL configuration
-    if os.getenv("AIVEN_KAFKA_BOOTSTRAP_SERVER") or os.getenv("AIVEN_KAFKA_USERNAME"):
-        config.update({
-            "security_protocol": "SASL_SSL",
-            "sasl_mechanism": "PLAIN",
-            "sasl_plain_username": os.getenv("AIVEN_KAFKA_USERNAME", ""),
-            "sasl_plain_password": os.getenv("AIVEN_KAFKA_PASSWORD", ""),
-        })
-        
-        ssl_cafile = os.getenv("AIVEN_SSL_CA_FILE")
-        if ssl_cafile:
-            config["ssl_cafile"] = ssl_cafile
-        
-        logging.info("✓ Using Aiven Kafka with SASL_SSL")
+async def kafka_order_Created_consumer() -> AIOKafkaConsumer:
 
     consumer = AIOKafkaConsumer(
         setting.KAFKA_ORDER_CREATED_TOPIC,
-        **config
+        bootstrap_server=setting.KAFKA_BOOTSTRAP_SERVER,
+        group_id=setting.KAFKA_CONSUMER_GROUP_ID_FOR_NOTIFICATION_SERVICE,
+        auto_offset_reset="earliest",
     )
-    
+
     while True:
         try:
             await consumer.start()
@@ -49,13 +30,13 @@ async def kafka_order_Created_consumer()-> AIOKafkaConsumer:
             logging.error(f"Consumer starting failed: {e}. Retry in 5 sec...")
             await asyncio.sleep(5)
 
-    try :
+    try:
         async for msg in consumer:
             event = json.loads(msg.value.decode("utf-8"))
             print(type(event))
             print(f"Event Received: {event}")
             if event["event_type"] == "Order_Created":
-                user_data= event.get("order", {})
+                user_data = event.get("order", {})
                 # user_id =user_data.get("id")
                 user_email = user_data.get("user_email")
                 order_id = user_data.get("order_id")
@@ -65,8 +46,7 @@ async def kafka_order_Created_consumer()-> AIOKafkaConsumer:
                     logging.warning("Email not found in event. Skipping...")
                     continue
                 subject = "Order Confirmation"
-                body = (
-                    f"""Your Order Has Been Created Successfully!
+                body = f"""Your Order Has Been Created Successfully!
 
 Order Details:
 
@@ -79,16 +59,17 @@ Thank you for choosing Qureshi Online Mart. We appreciate your trust in us.
 Best regards,
 The Online Mart Team
 """
-)
                 try:
                     await send_email(
-                        user_email= user_email,
+                        user_email=user_email,
                         subject=subject,
                         body=body,
                     )
                     logging.info(f"Order Confirmation email sent to {user_email}")
                 except Exception as email_error:
-                    logging.error(f"Failed to send order confirmation email to {user_email}: {email_error}")
+                    logging.error(
+                        f"Failed to send order confirmation email to {user_email}: {email_error}"
+                    )
             elif event["event_type"] == "Order_Deleted":
                 user_data = event.get("order", {})
                 # user_id = user_data.get("id")
@@ -99,8 +80,7 @@ The Online Mart Team
                     logging.warning("Email not found in event. Skipping...")
                     continue
                 subject = "Order Cancellation"
-                body = (
-                    f"""Your Order Has Been Cancelled Successfully!
+                body = f"""Your Order Has Been Cancelled Successfully!
 
 Order Details:
 
@@ -113,16 +93,17 @@ Thank you for choosing Qureshi Online Mart. We appreciate your trust in us.
 Best regards,
 The Online Mart Team
 """
-)
                 try:
                     await send_email(
-                        user_email= user_email,
+                        user_email=user_email,
                         subject=subject,
                         body=body,
                     )
                     logging.info(f"Order Cancellation email sent to {user_email}")
                 except Exception as email_error:
-                    logging.error(f"Failed to send order cancellation email to {user_email}: {email_error}")
+                    logging.error(
+                        f"Failed to send order cancellation email to {user_email}: {email_error}"
+                    )
     except json.JSONDecodeError as decode_error:
         logging.error(f"Failed to decode message: {msg.value}. Error: {decode_error}")
 

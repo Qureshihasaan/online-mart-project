@@ -1,5 +1,5 @@
 from aiokafka import AIOKafkaConsumer
-import asyncio , logging
+import asyncio, logging
 from .. import setting
 from aiokafka.errors import KafkaConnectionError
 from .. import email_services
@@ -10,36 +10,17 @@ loop = asyncio.get_event_loop()
 logging.basicConfig(level=logging.INFO)
 
 
-async def kafka_payment_consumer()->AIOKafkaConsumer:
-    # Build Kafka configuration with SSL/SASL support for Aiven
-    config = {
-        "bootstrap_servers": setting.KAFKA_BOOTSTRAP_SERVER,
-        "group_id": setting.KAFKA_CONSUMER_GROUP_ID_FOR_NOTIFICATION_SERVICE,
-        "auto_offset_reset": "earliest"
-    }
-
-    # Add Aiven SSL/SASL configuration
-    if os.getenv("AIVEN_KAFKA_BOOTSTRAP_SERVER") or os.getenv("AIVEN_KAFKA_USERNAME"):
-        config.update({
-            "security_protocol": "SASL_SSL",
-            "sasl_mechanism": "PLAIN",
-            "sasl_plain_username": os.getenv("AIVEN_KAFKA_USERNAME", ""),
-            "sasl_plain_password": os.getenv("AIVEN_KAFKA_PASSWORD", ""),
-        })
-        
-        ssl_cafile = os.getenv("AIVEN_SSL_CA_FILE")
-        if ssl_cafile:
-            config["ssl_cafile"] = ssl_cafile
-        
-        logging.info("✓ Using Aiven Kafka with SASL_SSL")
+async def kafka_payment_consumer() -> AIOKafkaConsumer:
 
     consumer = AIOKafkaConsumer(
-        setting.KAFKA_TOPIC_FOR_PAYMENT_DONE,
-        **config
+        setting.KAFKA_ORDER_CREATED_TOPIC,
+        bootstrap_server=setting.KAFKA_BOOTSTRAP_SERVER,
+        group_id=setting.KAFKA_CONSUMER_GROUP_ID_FOR_NOTIFICATION_SERVICE,
+        auto_offset_reset="earliest",
     )
-    
+
     while True:
-        try :
+        try:
             await consumer.start()
             logging.info("Consumer Started...")
             break
@@ -52,14 +33,13 @@ async def kafka_payment_consumer()->AIOKafkaConsumer:
         async for msg in consumer:
             event = json.loads(msg.value.decode("utf-8"))
             print(type(event))
-            print(f"Event Received: {event}") 
-            if event["event_type"] == "Payment_Created":    
+            print(f"Event Received: {event}")
+            if event["event_type"] == "Payment_Created":
                 payment_data = event.get("payment", {})
                 amount = event.get("amount")
                 order_id = event.get("order_id")
                 subject = "Payment Confirmation"
-                body = (
-                    f"""Your Payment Has Been Done Successfully!
+                body = f"""Your Payment Has Been Done Successfully!
 
 Payment Details:
 
@@ -70,27 +50,27 @@ Thank you for choosing Qureshi Online Mart.
 Best regards,
 The Online Mart Team
 """
-)
                 user_email = payment_data.get("user_email")
                 if not user_email:
                     logging.warning("Email not found in event. Skipping...")
                     continue
                 try:
                     await email_services.send_email(
-                        user_email= user_email,
+                        user_email=user_email,
                         subject=subject,
                         body=body,
                     )
                     logging.info(f"Payment Confirmation email sent to {user_email}")
                 except Exception as email_error:
-                    logging.error(f"Failed to send payment confirmation email to {user_email}: {email_error}")
+                    logging.error(
+                        f"Failed to send payment confirmation email to {user_email}: {email_error}"
+                    )
             elif event["event_type"] == "Payment_Deleted":
                 payment_data = event.get("payment", {})
                 amount = event.get("amount")
                 order_id = event.get("order_id")
                 subject = "Payment Cancellation"
-                body = (
-                    f"""Your Payment Has Been Cancelled Successfully!
+                body = f"""Your Payment Has Been Cancelled Successfully!
 
 Payment Details:
 
@@ -101,21 +81,21 @@ Thank you for choosing Qureshi Online Mart.
 Best regards,
 The Online Mart Team
 """
-)
                 user_email = payment_data.get("user_email")
                 if not user_email:
                     logging.warning("Email not found in event. Skipping...")
                     continue
                 try:
                     await email_services.send_email(
-                        user_email= user_email,
+                        user_email=user_email,
                         subject=subject,
                         body=body,
                     )
                     logging.info(f"Payment Cancellation email sent to {user_email}")
                 except Exception as email_error:
-                    logging.error(f"Failed to send payment cancellation email to {user_email}: {email_error}")
+                    logging.error(
+                        f"Failed to send payment cancellation email to {user_email}: {email_error}"
+                    )
 
-    
     finally:
         await consumer.stop()

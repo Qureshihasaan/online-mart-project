@@ -8,27 +8,14 @@ import os
 loop = asyncio.get_event_loop()
 logging.basicConfig(level=logging.INFO)
 
+
 async def consume_messages(topic, bootstrapserver) -> AIOKafkaConsumer:
-    # Build Kafka configuration with SSL/SASL support for Aiven
-    config = {
-        "bootstrap_servers": setting.KAFKA_BOOTSTRAP_SERVER,
-        "group_id": setting.KAFKA_CONSUMER_GROUP_ID_FOR_PRODUCT,
-        "auto_offset_reset": "earliest"
-    }
-    
-    # Add Aiven SSL/SASL configuration if using Aiven
-    aiven_bootstrap = os.getenv("AIVEN_KAFKA_BOOTSTRAP_SERVER", "")
-    if aiven_bootstrap:
-        config.update({
-            "security_protocol": "SASL_SSL",
-            "sasl_mechanism": "PLAIN",
-            "sasl_plain_username": os.getenv("AIVEN_KAFKA_USERNAME", ""),
-            "sasl_plain_password": os.getenv("AIVEN_KAFKA_PASSWORD", ""),
-        })
-    
+
     consumer = AIOKafkaConsumer(
         setting.KAFKA_PRODUCT_TOPIC,
-        **config
+        bootstrap_server=setting.KAFKA_BOOTSTRAP_SERVER,
+        group_id=setting.KAFKA_CONSUMER_GROUP_ID_FOR_PRODUCT,
+        auto_offset_reset="earliest",
     )
 
     while True:
@@ -54,4 +41,3 @@ async def consume_messages(topic, bootstrapserver) -> AIOKafkaConsumer:
             await consumer.stop()
         except Exception as e:
             logging.error(f"Error stopping consumer: {e}")
-          
