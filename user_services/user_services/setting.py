@@ -1,7 +1,7 @@
 from starlette.config import Config
 from starlette.datastructures import Secret
 
-# try: 
+# try:
 #     config = Config(".env")
 #     print("✓ .env file found and loaded")
 # except FileNotFoundError:
@@ -19,7 +19,9 @@ KAFKA_TOPIC_FROM_USER_TO_ORDER = config("KAFKA_TOPIC_FROM_USER_TO_ORDER", cast=s
 ### JWT Variables
 SECRET_KEY = config("SECRET_KEY", cast=Secret)
 ALGORITHM = config("ALGORITHMS", cast=str)
-ACCESS_TOKEN_EXPIRE_MINUTES = config("ACCESS_TOKEN_EXPIRE_MINUTES", cast=int)
+ACCESS_TOKEN_EXPIRE_MINUTES = config(
+    "ACCESS_TOKEN_EXPIRE_MINUTES", cast=int, default=10
+)
 
 ### Google OAuth
 GOOGLE_CLIENT_ID = config("GOOGLE_CLIENT_ID", cast=str)

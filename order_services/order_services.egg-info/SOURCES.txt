@@ -7,7 +7,6 @@ order_services/database.py
 order_services/main.py
 order_services/producer.py
 order_services/setting.py
-order_services/utils.py
 order_services.egg-info/PKG-INFO
 order_services.egg-info/SOURCES.txt
 order_services.egg-info/dependency_links.txt

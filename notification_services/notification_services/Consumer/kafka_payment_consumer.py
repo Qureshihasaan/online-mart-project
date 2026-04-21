@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.INFO)
 async def kafka_payment_consumer() -> AIOKafkaConsumer:
 
     consumer = AIOKafkaConsumer(
-        setting.KAFKA_ORDER_CREATED_TOPIC,
+        setting.KAFKA_PAYMENT_TOPIC,
         bootstrap_server=setting.KAFKA_BOOTSTRAP_SERVER,
         group_id=setting.KAFKA_CONSUMER_GROUP_ID_FOR_NOTIFICATION_SERVICE,
         auto_offset_reset="earliest",

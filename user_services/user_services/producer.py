@@ -5,7 +5,7 @@ import os
 
 async def kafka_producer():
 
-    producer = AIOKafkaProducer(setting.KAFKA_BOOTSTRAP_SERVER)
+    producer = AIOKafkaProducer(bootstrap_server=str(setting.KAFKA_BOOTSTRAP_SERVER))
     await producer.start()
     try:
         yield producer

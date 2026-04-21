@@ -14,7 +14,6 @@ from .producer import kafka_producer1
 from .authenticate import validate_role
 
 
-
 loop = asyncio.get_event_loop()
 logging.basicConfig(level=logging.INFO)
 
@@ -44,30 +43,43 @@ def get_db():
 
 
 @app.get("/get_single_stock_update")
-def get_single_stock_update(product_id: int, db: Annotated[Session, Depends(get_db)],
-                            token_data: Annotated[dict, Depends(validate_role(["seller", "admin"]))]
-                            ):
-    stock = db.exec(select(Stock_update).where(Stock_update.product_id == product_id)).first()
+def get_single_stock_update(
+    product_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    token_data: Annotated[dict, Depends(validate_role(["seller", "admin"]))],
+):
+    stock = db.exec(
+        select(Stock_update).where(Stock_update.product_id == product_id)
+    ).first()
     if not stock:
-        raise HTTPException(status_code=404, detail=f"Stock for Product ID {product_id} not found")
+        raise HTTPException(
+            status_code=404, detail=f"Stock for Product ID {product_id} not found"
+        )
     return stock
 
 
 @app.get("/get_stock_update")
-def get_stock_update(db: Annotated[Session, Depends(get_db)],
-                     token_data: Annotated[dict, Depends(validate_role(["seller", "admin"]))]
-                     ):
+def get_stock_update(
+    db: Annotated[Session, Depends(get_db)],
+    token_data: Annotated[dict, Depends(validate_role(["seller", "admin"]))],
+):
     stock = db.exec(select(Stock_update)).all()
     return stock
 
 
 @app.delete("/delete_stock/{product_id}")
-def delete_stock(product_id: int, db: Annotated[Session, Depends(get_db)],
-                 token_data: Annotated[dict, Depends(validate_role(["seller", "admin"]))]
-                 ):
-    stock = db.exec(select(Stock_update).where(Stock_update.product_id == product_id)).first()
+def delete_stock(
+    product_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    token_data: Annotated[dict, Depends(validate_role(["seller", "admin"]))],
+):
+    stock = db.exec(
+        select(Stock_update).where(Stock_update.product_id == product_id)
+    ).first()
     if not stock:
-        raise HTTPException(status_code=404, detail=f"Stock for Product ID {product_id} not found")
+        raise HTTPException(
+            status_code=404, detail=f"Stock for Product ID {product_id} not found"
+        )
     db.delete(stock)
     db.commit()
     return {"detail": f"Stock for Product ID {product_id} deleted successfully"}
@@ -76,7 +88,9 @@ def delete_stock(product_id: int, db: Annotated[Session, Depends(get_db)],
 @app.get("/check_inventory/{product_id}/{quantity}")
 async def check_inventory(product_id: int, quantity: int):
     with Session(engine) as session:
-        product = session.exec(select(Stock_update).where(Stock_update.product_id == product_id)).first()
+        product = session.exec(
+            select(Stock_update).where(Stock_update.product_id == product_id)
+        ).first()
         if product and product.product_quantity >= quantity:
             return {"available": True}
         else:

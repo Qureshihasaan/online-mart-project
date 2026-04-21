@@ -14,14 +14,13 @@ loop = asyncio.get_event_loop()
 logging.basicConfig(level=logging.INFO)
 
 
-async def consume_message():
+async def consume_product_events():
     consumer = AIOKafkaConsumer(
         setting.KAFKA_PRODUCT_TOPIC,
         bootstrap_servers=setting.BOOTSTRAP_SERVER,
         group_id=setting.KAFKA_CONSUMER_GROUP_ID_FOR_INVENTORY,
         auto_offset_reset="earliest",
-        value_deserializer= lambda x: json.loads(x.decode("utf-8")),
-
+        value_deserializer=lambda x: json.loads(x.decode("utf-8")),
     )
 
     await consumer.start()
@@ -138,8 +137,6 @@ def delete_inventory(product_id):
         logging.error(f"Error deleting inventory: {e}")
 
 
-
-
 async def consume_order_events():
     # Build Kafka configuration with SSL/SASL support for Aiven
 
@@ -148,8 +145,6 @@ async def consume_order_events():
         setting.KAFKA_BOOTSTRAP_SERVER,
         setting.KAFKA_CONSUMER_GROUP_ID_FOR_INVENTORY,
         auto_offset_reset="earliest",
-        
-        
     )
 
     await consumer.start()
@@ -162,16 +157,14 @@ async def consume_order_events():
                 print("Event received:", event)
                 if event["event_type"] == "Order_Created":
                     order = event["order"]
-                    decrease_inventory(
-                        order["product_id"],
-                        order["product_quantity"]
-                    )
+                    decrease_inventory(order["product_id"], order["product_quantity"])
                     print("Inventory Updated (Decreased) for product...")
             except Exception as e:
                 logging.error(f"Error processing order message: {e}")
                 continue
     finally:
         await consumer.stop()
+
 
 def decrease_inventory(product_id, quantity):
     try:
@@ -189,7 +182,6 @@ def decrease_inventory(product_id, quantity):
                 print(f"Product {product_id} not found in inventory, cannot decrease.")
     except Exception as e:
         logging.error(f"Error decreasing inventory: {e}")
-
 
 
 def add_inventory(product_id, product_name, product_quantity):
@@ -264,36 +256,6 @@ def delete_inventory(product_id):
                 print(f"Product {product_id} not found in inventory, cannot delete.")
     except Exception as e:
         logging.error(f"Error deleting inventory: {e}")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 ##### Notice the below code

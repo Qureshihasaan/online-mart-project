@@ -15,22 +15,16 @@ except FileNotFoundError:
     logger.warning("✗ .env file NOT found, using environment variables from system")
 
 # Load environment variables with defaults for local development
-PRODUCT_SERVICE_DATABASE_URL = config("PRODUCT_SERVICE_DATABASE_URL", cast=Secret, default="postgresql://user:password@localhost:5432/products_db")
+PRODUCT_SERVICE_DATABASE_URL = config("PRODUCT_SERVICE_DATABASE_URL", cast=Secret)
 
-# Kafka configuration - Aiven production deployment
-# AIVEN_KAFKA_BOOTSTRAP_SERVER is required for production
-AIVEN_KAFKA_BOOTSTRAP_SERVER = os.getenv("AIVEN_KAFKA_BOOTSTRAP_SERVER", "")
-KAFKA_BOOTSTRAP_SERVER = os.getenv("KAFKA_BOOTSTRAP_SERVER", "")
 
-# Use Aiven Kafka if configured
-if AIVEN_KAFKA_BOOTSTRAP_SERVER:
-    KAFKA_BOOTSTRAP_SERVER = AIVEN_KAFKA_BOOTSTRAP_SERVER
-    logger.info("✓ Using Aiven Kafka (SASL_SSL)")
-else:
-    logger.warning("⚠ AIVEN_KAFKA_BOOTSTRAP_SERVER not set. Kafka features will not work.")
+KAFKA_BOOTSTRAP_SERVER = os.getenv("KAFKA_BOOTSTRAP_SERVER")
 
-KAFKA_PRODUCT_TOPIC = config("KAFKA_PRODUCT_TOPIC", cast=str, default="product-topic")
-KAFKA_CONSUMER_GROUP_ID_FOR_PRODUCT = config("KAFKA_CONSUMER_GROUP_ID_FOR_PRODUCT", cast=str, default="product-group")
+
+KAFKA_PRODUCT_TOPIC = config("KAFKA_PRODUCT_TOPIC", cast=str)
+KAFKA_CONSUMER_GROUP_ID_FOR_PRODUCT = config(
+    "KAFKA_CONSUMER_GROUP_ID_FOR_PRODUCT", cast=str
+)
 
 
 GEMINI_API_KEY = config("GEMINI_API_KEY", cast=Secret)
@@ -38,9 +32,8 @@ GEMINI_API_KEY = config("GEMINI_API_KEY", cast=Secret)
 
 PINECONE_API_KEY = config("PINECONE_API_KEY", cast=Secret)
 
-PINECONE_INDEX_NAME = config("PINECONE_INDEX_NAME", cast=str, default="online-mart-products")
+PINECONE_INDEX_NAME = config("PINECONE_INDEX_NAME", cast=str)
 
 # Security settings
-SECRET_KEY = config("SECRET_KEY", cast=str, default="dev-secret-key-change-in-production")
-ALGORITHMS = config("ALGORITHMS", cast=str, default="HS256")
-
+SECRET_KEY = config("SECRET_KEY", cast=str)
+ALGORITHMS = config("ALGORITHMS", cast=str)
