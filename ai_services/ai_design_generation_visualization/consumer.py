@@ -33,7 +33,7 @@ async def consume_product_events() -> None:
 
     consumer = AIOKafkaConsumer(
         config.KAFKA_PRODUCT_TOPIC,
-        bootstrap_server=config.KAFKA_BOOTSTRAP_SERVER,
+        bootstrap_servers=config.KAFKA_BOOTSTRAP_SERVER,
         group_id=config.KAFKA_CONSUMER_GROUP_ID,
         auto_offset_reset="earliest",
     )

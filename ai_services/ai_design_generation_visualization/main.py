@@ -5,6 +5,7 @@ Exposes REST endpoints for generating designs, visualizing
 them on products, and managing AI Center records with Kafka
 event streaming for the approval → payment flow.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -25,7 +26,7 @@ from sqlmodel import Session, select
 from aiokafka import AIOKafkaProducer
 
 import config
-from database import AICenter
+from database import AICenter, get_session
 from consumer import consume_product_events
 from producer import kafka_producer
 from model import (
@@ -41,6 +42,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Lifespan — start Kafka consumer & create DB tables on startup
 # ---------------------------------------------------------------------------
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -100,6 +102,7 @@ app.mount("/output", StaticFiles(directory=str(config.OUTPUT_DIR)), name="output
 # Helper
 # ---------------------------------------------------------------------------
 
+
 def _save_image(b64_data: str, label: str) -> str:
     """Persist a base64 image to the output directory. Returns the filename."""
     filename = f"{label}_{uuid.uuid4().hex[:8]}.png"
@@ -138,7 +141,10 @@ async def ai_center_create(
 
         if not product_image_b64:
             # Auto-fetch base64 from Product Service
-            logger.info("Fetching product image for product_id=%d from Product Service", request.product_id)
+            logger.info(
+                "Fetching product image for product_id=%d from Product Service",
+                request.product_id,
+            )
             async with httpx.AsyncClient() as client:
                 resp = await client.get(
                     f"http://product_services:8000/product/{request.product_id}/image"
@@ -147,7 +153,9 @@ async def ai_center_create(
                     product_image_b64 = resp.json().get("product_image")
                     logger.info("Product image fetched successfully")
                 else:
-                    logger.warning("Product has no image uploaded (status=%d)", resp.status_code)
+                    logger.warning(
+                        "Product has no image uploaded (status=%d)", resp.status_code
+                    )
 
         # Step 2: Generate the design
         logger.info("Generating design for idea: '%s'", request.user_idea[:50])
@@ -169,7 +177,9 @@ async def ai_center_create(
                 product_color=request.product_color,
                 prompt=f"Apply this design naturally: {request.user_idea}",
             )
-            final_product_b64 = apply_result.get("enhanced_image") or apply_result.get("visualization_image")
+            final_product_b64 = apply_result.get("enhanced_image") or apply_result.get(
+                "visualization_image"
+            )
             if final_product_b64:
                 _save_image(final_product_b64, "ai_center_final")
         else:
@@ -239,7 +249,11 @@ async def ai_center_approve(
         config.KAFKA_DESIGN_TOPIC,
         json.dumps(event).encode("utf-8"),
     )
-    logger.info("Published Design_Approved event for id=%d to '%s'", ai_center.id, config.KAFKA_DESIGN_TOPIC)
+    logger.info(
+        "Published Design_Approved event for id=%d to '%s'",
+        ai_center.id,
+        config.KAFKA_DESIGN_TOPIC,
+    )
 
     return AICenterResponse(
         id=ai_center.id,
